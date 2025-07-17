@@ -1,6 +1,22 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
   
+  // Enable static site generation for GitHub Pages
+  nitro: {
+    prerender: {
+      routes: ['/']
+    },
+    experimental: {
+      wasm: true
+    }
+  },
+  
+  // Configure for GitHub Pages deployment
+  app: {
+    baseURL: process.env.NODE_ENV === 'production' ? '/fishrpt/' : '/',
+    buildAssetsDir: '/assets/'
+  },
+  
   modules: [
     '@nuxt/ui',
     '@vite-pwa/nuxt'
@@ -9,7 +25,7 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     workbox: {
-      navigateFallback: '/',
+      navigateFallback: '/fishrpt/',
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
     },
     client: {
@@ -23,16 +39,16 @@ export default defineNuxtConfig({
       background_color: '#ffffff',
       display: 'standalone',
       orientation: 'portrait',
-      scope: '/',
-      start_url: '/',
+      scope: '/fishrpt/',
+      start_url: '/fishrpt/',
       icons: [
         {
-          src: '/icon-192x192.png',
+          src: '/fishrpt/icon-192x192.png',
           sizes: '192x192',
           type: 'image/png',
         },
         {
-          src: '/icon-512x512.png',
+          src: '/fishrpt/icon-512x512.png',
           sizes: '512x512',
           type: 'image/png',
         },
@@ -55,9 +71,7 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
-  nitro: {
-    experimental: {
-      wasm: true
-    }
-  }
+  // Enable static generation
+  ssr: false, // Client-side rendering for GitHub Pages
+  target: 'static'
 })
