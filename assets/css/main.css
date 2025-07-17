@@ -1,0 +1,63 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Custom fishing-themed colors */
+:root {
+  --ocean-blue: #0ea5e9;
+  --deep-blue: #075985;
+  --sea-green: #059669;
+  --sunset-orange: #f97316;
+  --sandy-beige: #fbbf24;
+}
+
+/* PWA specific styles */
+@media (display-mode: standalone) {
+  body {
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Custom chart container */
+.chart-container {
+  position: relative;
+  height: 300px;
+  margin: 1rem 0;
+}
+
+/* Loading animation */
+.wave-loader {
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--ocean-blue), transparent);
+  animation: wave 2s infinite;
+}
+
+@keyframes wave {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Card hover effects */
+.fishing-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.fishing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile-first responsive design */
+@media (max-width: 640px) {
+  .chart-container {
+    height: 250px;
+  }
+}
