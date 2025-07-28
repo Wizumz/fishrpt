@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-2xl font-bold text-blue-400 flex items-center">
-              🎣 Fishing Report Pro
+              🎣 Marine Conditions Pro
             </h1>
             <p class="text-sm text-gray-400">Professional marine weather and fishing conditions</p>
           </div>
@@ -23,7 +23,7 @@
       <UCard class="bg-gray-800 border-gray-700">
         <template #header>
           <h2 class="text-xl font-semibold text-gray-100 flex items-center">
-            📍 Fishing Location
+            📍 Marine Location
           </h2>
         </template>
         
@@ -67,8 +67,8 @@
     <div v-if="isLoading" class="container mx-auto px-4">
       <div class="text-center py-12">
         <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-        <p class="text-gray-300 text-lg">Loading comprehensive fishing conditions...</p>
-        <p class="text-gray-500 text-sm mt-2">Gathering marine weather, tides, and historical data</p>
+        <p class="text-gray-300 text-lg">Loading marine conditions...</p>
+        <p class="text-gray-500 text-sm mt-2">Gathering weather, tides, and swell data</p>
       </div>
     </div>
 
@@ -84,235 +84,255 @@
 
     <!-- Main Dashboard -->
     <div v-if="reportData && !isLoading" class="container mx-auto px-4 pb-8">
-      <!-- Fishing Score Header -->
+      <!-- Location Header -->
       <div class="mb-6">
         <UCard class="bg-gray-800 border-gray-700">
-          <div class="text-center py-6">
-            <h2 class="text-3xl font-bold text-gray-100 mb-2">{{ reportData.location }}</h2>
-            <div class="flex items-center justify-center gap-4 mb-4">
+          <div class="py-4">
+            <h2 class="text-2xl font-bold text-gray-100 mb-2">{{ reportData.location }}</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div class="text-center">
-                <div class="text-6xl font-bold mb-2" :class="getFishingScoreColor(reportData.fishingScore)">
-                  {{ reportData.fishingScore }}
-                </div>
-                <div class="text-gray-400">Fishing Score</div>
+                <div class="text-gray-400">Water Temp</div>
+                <div class="text-xl font-bold text-blue-400">{{ Math.round(reportData.waterTemp) }}°F</div>
               </div>
-              <div class="text-4xl">{{ getFishingScoreEmoji(reportData.fishingScore) }}</div>
+              <div class="text-center">
+                <div class="text-gray-400">Air Temp</div>
+                <div class="text-xl font-bold text-orange-400">{{ Math.round(reportData.airTemp) }}°F</div>
+              </div>
+              <div class="text-center">
+                <div class="text-gray-400">Pressure</div>
+                <div class="text-xl font-bold text-purple-400">{{ reportData.pressure.toFixed(2) }}"</div>
+              </div>
+              <div class="text-center">
+                <div class="text-gray-400">Visibility</div>
+                <div class="text-xl font-bold text-cyan-400">{{ reportData.visibility }} mi</div>
+              </div>
             </div>
-            <UBadge 
-              :color="getFishingRating(reportData.fishingScore).color" 
-              size="lg"
-              class="text-lg px-4 py-2"
-            >
-              {{ getFishingRating(reportData.fishingScore).label }} Conditions
-            </UBadge>
-          </div>
-        </UCard>
-      </div>
-
-      <!-- Key Metrics Grid -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <UCard class="bg-gray-800 border-gray-700">
-          <div class="text-center p-4">
-            <div class="text-3xl mb-2">🌡️</div>
-            <div class="text-2xl font-bold text-blue-400">{{ Math.round(reportData.waterTemp) }}°F</div>
-            <div class="text-xs text-gray-400">Water Temp</div>
-            <div class="text-xs text-gray-500 mt-1">{{ getWaterTempTrend(reportData.waterTemp) }}</div>
-          </div>
-        </UCard>
-        
-        <UCard class="bg-gray-800 border-gray-700">
-          <div class="text-center p-4">
-            <div class="text-3xl mb-2">💨</div>
-            <div class="text-2xl font-bold text-green-400">{{ Math.round(reportData.windSpeed) }} mph</div>
-            <div class="text-xs text-gray-400">Wind Speed</div>
-            <div class="text-xs text-gray-500 mt-1">{{ getWindDirection(reportData.windDirection) }}</div>
-          </div>
-        </UCard>
-        
-        <UCard class="bg-gray-800 border-gray-700">
-          <div class="text-center p-4">
-            <div class="text-3xl mb-2">🌊</div>
-            <div class="text-2xl font-bold text-cyan-400">{{ reportData.waveHeight.toFixed(1) }} ft</div>
-            <div class="text-xs text-gray-400">Wave Height</div>
-            <div class="text-xs text-gray-500 mt-1">{{ getWaveDirection(reportData.waveDirection) }}</div>
-          </div>
-        </UCard>
-        
-        <UCard class="bg-gray-800 border-gray-700">
-          <div class="text-center p-4">
-            <div class="text-3xl mb-2">🌙</div>
-            <div class="text-sm font-bold text-yellow-400">{{ reportData.moonPhase }}</div>
-            <div class="text-xs text-gray-400">Moon Phase</div>
-            <div class="text-xs text-gray-500 mt-1">{{ reportData.moonIllumination }}% Illuminated</div>
           </div>
         </UCard>
       </div>
 
       <!-- Main Content Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left Column -->
-        <div class="lg:col-span-2 space-y-6">
-          <!-- Marine Weather Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Left Column - Charts -->
+        <div class="lg:col-span-3 space-y-6">
+          <!-- Marine Conditions Chart -->
           <UCard class="bg-gray-800 border-gray-700">
             <template #header>
               <h3 class="text-lg font-semibold text-gray-100 flex items-center">
-                🌊 Marine Weather Forecast
+                🌊 Marine Conditions
               </h3>
             </template>
             
             <div class="h-80">
               <canvas ref="marineChart"></canvas>
             </div>
-          </UCard>
-
-          <!-- Wind and Swell Direction -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <UCard class="bg-gray-800 border-gray-700">
-              <template #header>
-                <h3 class="text-lg font-semibold text-gray-100">💨 Wind Direction</h3>
-              </template>
-              
-              <div class="p-4">
-                <div class="relative w-32 h-32 mx-auto mb-4">
-                  <div class="absolute inset-0 rounded-full border-4 border-gray-600"></div>
-                  <div class="absolute inset-2 rounded-full border-2 border-gray-700"></div>
-                  <div 
-                    class="absolute top-1/2 left-1/2 w-1 h-12 bg-green-400 transform -translate-x-1/2 origin-bottom transition-transform duration-500"
-                    :style="{ transform: `translate(-50%, -100%) rotate(${reportData.windDirection}deg)` }"
-                  ></div>
-                  <!-- Compass directions -->
-                  <div class="absolute top-0 left-1/2 transform -translate-x-1/2 text-xs text-gray-400">N</div>
-                  <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-xs text-gray-400">S</div>
-                  <div class="absolute right-0 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">E</div>
-                  <div class="absolute left-0 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">W</div>
+            
+            <!-- Swell Safety Info -->
+            <div class="mt-4 p-3 bg-gray-700 rounded-lg">
+              <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center space-x-4">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                    <span class="text-gray-300">Wind Speed (mph)</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
+                    <span class="text-gray-300">Swell Height (ft)</span>
+                  </div>
                 </div>
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-green-400">{{ Math.round(reportData.windDirection) }}°</div>
-                  <div class="text-sm text-gray-400">{{ getWindDirection(reportData.windDirection) }}</div>
-                  <div class="text-xs text-gray-500 mt-1">{{ Math.round(reportData.windSpeed) }} mph avg</div>
+                <div class="text-right">
+                  <div class="text-xs text-gray-400">Current Swell Period: {{ reportData.swellPeriod }}s</div>
+                  <div class="text-xs" :class="getSwellSafetyColor()">
+                    {{ getSwellSafetyText() }}
+                  </div>
                 </div>
               </div>
-            </UCard>
+            </div>
+          </UCard>
 
-            <UCard class="bg-gray-800 border-gray-700">
-              <template #header>
-                <h3 class="text-lg font-semibold text-gray-100">🌊 Swell Direction</h3>
-              </template>
-              
-              <div class="p-4">
-                <div class="relative w-32 h-32 mx-auto mb-4">
+          <!-- Water Temperature Trends -->
+          <UCard class="bg-gray-800 border-gray-700">
+            <template #header>
+              <h3 class="text-lg font-semibold text-gray-100">🌡️ Water Temperature History</h3>
+            </template>
+            
+            <div class="h-64">
+              <canvas ref="tempChart"></canvas>
+            </div>
+            
+            <div class="mt-4 grid grid-cols-3 gap-4 text-center text-sm">
+              <div>
+                <div class="text-lg font-bold text-blue-400">{{ Math.round(reportData.historicalTemp.current) }}°F</div>
+                <div class="text-gray-400">Current</div>
+              </div>
+              <div>
+                <div class="text-lg font-bold text-green-400">{{ Math.round(reportData.historicalTemp.average) }}°F</div>
+                <div class="text-gray-400">30-Day Average</div>
+              </div>
+              <div>
+                <div class="text-lg font-bold" :class="reportData.historicalTemp.trend > 0 ? 'text-red-400' : 'text-blue-400'">
+                  {{ reportData.historicalTemp.trend > 0 ? '+' : '' }}{{ reportData.historicalTemp.trend.toFixed(1) }}°F
+                </div>
+                <div class="text-gray-400">7-Day Change</div>
+              </div>
+            </div>
+          </UCard>
+
+          <!-- Wind & Swell Direction Combined -->
+          <UCard class="bg-gray-800 border-gray-700">
+            <template #header>
+              <h3 class="text-lg font-semibold text-gray-100">🧭 Wind & Swell Direction</h3>
+            </template>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+              <!-- Combined Direction Display -->
+              <div class="text-center">
+                <h4 class="text-md font-semibold text-gray-200 mb-4">Current Conditions</h4>
+                <div class="relative w-40 h-40 mx-auto mb-4">
+                  <!-- Compass base -->
                   <div class="absolute inset-0 rounded-full border-4 border-gray-600"></div>
-                  <div class="absolute inset-2 rounded-full border-2 border-gray-700"></div>
+                  <div class="absolute inset-3 rounded-full border-2 border-gray-700"></div>
+                  
+                  <!-- Wind direction arrow -->
+                  <div 
+                    class="absolute top-1/2 left-1/2 w-1 h-16 bg-green-400 transform -translate-x-1/2 origin-bottom transition-transform duration-500"
+                    :style="{ transform: `translate(-50%, -100%) rotate(${reportData.windDirection}deg)` }"
+                  ></div>
+                  
+                  <!-- Swell direction arrow -->
                   <div 
                     class="absolute top-1/2 left-1/2 w-1 h-12 bg-cyan-400 transform -translate-x-1/2 origin-bottom transition-transform duration-500"
                     :style="{ transform: `translate(-50%, -100%) rotate(${reportData.waveDirection}deg)` }"
                   ></div>
+                  
                   <!-- Compass directions -->
-                  <div class="absolute top-0 left-1/2 transform -translate-x-1/2 text-xs text-gray-400">N</div>
-                  <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-xs text-gray-400">S</div>
-                  <div class="absolute right-0 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">E</div>
-                  <div class="absolute left-0 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">W</div>
+                  <div class="absolute top-0 left-1/2 transform -translate-x-1/2 text-xs text-gray-400 font-semibold">N</div>
+                  <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-xs text-gray-400 font-semibold">S</div>
+                  <div class="absolute right-0 top-1/2 transform -translate-y-1/2 text-xs text-gray-400 font-semibold">E</div>
+                  <div class="absolute left-0 top-1/2 transform -translate-y-1/2 text-xs text-gray-400 font-semibold">W</div>
                 </div>
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-cyan-400">{{ Math.round(reportData.waveDirection) }}°</div>
-                  <div class="text-sm text-gray-400">{{ getWaveDirection(reportData.waveDirection) }}</div>
-                  <div class="text-xs text-gray-500 mt-1">{{ reportData.swellPeriod }}s period</div>
-                </div>
-              </div>
-            </UCard>
-          </div>
-
-          <!-- Historical Water Temperature -->
-          <UCard class="bg-gray-800 border-gray-700">
-            <template #header>
-              <h3 class="text-lg font-semibold text-gray-100">📊 Water Temperature Trends</h3>
-            </template>
-            
-            <div class="p-4">
-              <div class="h-64">
-                <canvas ref="tempHistoryChart"></canvas>
-              </div>
-              <div class="mt-4 grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div class="text-lg font-bold text-blue-400">{{ Math.round(reportData.historicalTemp.current) }}°F</div>
-                  <div class="text-xs text-gray-400">Current</div>
-                </div>
-                <div>
-                  <div class="text-lg font-bold text-green-400">{{ Math.round(reportData.historicalTemp.average) }}°F</div>
-                  <div class="text-xs text-gray-400">Seasonal Avg</div>
-                </div>
-                <div>
-                  <div class="text-lg font-bold" :class="reportData.historicalTemp.trend > 0 ? 'text-red-400' : 'text-blue-400'">
-                    {{ reportData.historicalTemp.trend > 0 ? '+' : '' }}{{ reportData.historicalTemp.trend.toFixed(1) }}°F
+                
+                <div class="space-y-2">
+                  <div class="flex items-center justify-center space-x-2">
+                    <div class="w-3 h-3 bg-green-400 rounded"></div>
+                    <span class="text-sm text-gray-300">Wind: {{ getWindDirection(reportData.windDirection) }} {{ Math.round(reportData.windSpeed) }} mph</span>
                   </div>
-                  <div class="text-xs text-gray-400">vs Last Week</div>
+                  <div class="flex items-center justify-center space-x-2">
+                    <div class="w-3 h-3 bg-cyan-400 rounded"></div>
+                    <span class="text-sm text-gray-300">Swell: {{ getWaveDirection(reportData.waveDirection) }} {{ reportData.waveHeight.toFixed(1) }} ft</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Direction Analysis -->
+              <div>
+                <h4 class="text-md font-semibold text-gray-200 mb-4">Marine Analysis</h4>
+                <div class="space-y-3 text-sm">
+                  <div class="p-3 bg-gray-700 rounded">
+                    <div class="font-semibold text-blue-400 mb-1">Wind Conditions</div>
+                    <div class="text-gray-300">{{ getWindAnalysis() }}</div>
+                  </div>
+                  
+                  <div class="p-3 bg-gray-700 rounded">
+                    <div class="font-semibold text-cyan-400 mb-1">Swell Conditions</div>
+                    <div class="text-gray-300">{{ getSwellAnalysis() }}</div>
+                  </div>
+                  
+                  <div class="p-3 bg-gray-700 rounded">
+                    <div class="font-semibold text-yellow-400 mb-1">Fishing Impact</div>
+                    <div class="text-gray-300">{{ getFishingConditionsAnalysis() }}</div>
+                  </div>
                 </div>
               </div>
             </div>
           </UCard>
         </div>
 
-        <!-- Right Column -->
+        <!-- Right Column - Tides, Lunar, Weather -->
         <div class="space-y-6">
           <!-- Tides -->
           <UCard class="bg-gray-800 border-gray-700">
             <template #header>
-              <h3 class="text-lg font-semibold text-gray-100">🌊 Tide Schedule</h3>
+              <h3 class="text-lg font-semibold text-gray-100">🌊 Tide Chart</h3>
             </template>
             
-            <div class="space-y-3">
+            <!-- Tide Chart -->
+            <div class="h-48 mb-4">
+              <canvas ref="tideChart"></canvas>
+            </div>
+            
+            <!-- Next Tides -->
+            <div class="space-y-2">
+              <h4 class="font-semibold text-gray-200 text-sm">Next Tides</h4>
               <div 
-                v-for="(tide, index) in reportData.tides.slice(0, 8)" 
+                v-for="(tide, index) in reportData.tides.slice(0, 6)" 
                 :key="index"
-                class="flex justify-between items-center p-3 rounded-lg"
+                class="flex justify-between items-center p-2 rounded"
                 :class="index % 2 === 0 ? 'bg-gray-700' : 'bg-gray-750'"
               >
-                <div class="flex items-center space-x-3">
-                  <div class="text-2xl">{{ tide.type === 'High Tide' ? '⬆️' : '⬇️' }}</div>
+                <div class="flex items-center space-x-2">
+                  <div class="text-lg">{{ tide.type === 'High Tide' ? '⬆️' : '⬇️' }}</div>
                   <div>
-                    <div class="font-semibold text-gray-100">{{ tide.type }}</div>
-                    <div class="text-sm text-gray-400">{{ tide.t }}</div>
+                    <div class="text-sm font-semibold text-gray-100">{{ tide.type.replace(' Tide', '') }}</div>
+                    <div class="text-xs text-gray-400">{{ tide.t }}</div>
                   </div>
                 </div>
                 <div class="text-right">
-                  <div class="font-bold text-cyan-400">{{ tide.v }} ft</div>
+                  <div class="text-sm font-bold text-cyan-400">{{ tide.v }} ft</div>
                   <div class="text-xs text-gray-500">{{ getTimeFromNow(tide.t) }}</div>
                 </div>
               </div>
             </div>
           </UCard>
 
-          <!-- Solunar Times -->
+          <!-- Lunar Table -->
           <UCard class="bg-gray-800 border-gray-700">
             <template #header>
-              <h3 class="text-lg font-semibold text-gray-100">🌙 Solunar Activity</h3>
+              <h3 class="text-lg font-semibold text-gray-100">🌙 Lunar Conditions</h3>
             </template>
             
             <div class="space-y-4">
+              <!-- Current Moon Phase -->
               <div class="text-center p-4 bg-gray-700 rounded-lg">
-                <div class="text-3xl mb-2">{{ getMoonEmoji(reportData.moonPhase) }}</div>
+                <div class="text-4xl mb-2">{{ getMoonEmoji(reportData.moonPhase) }}</div>
                 <div class="font-semibold text-yellow-400">{{ reportData.moonPhase }}</div>
                 <div class="text-sm text-gray-400">{{ reportData.moonIllumination }}% Illuminated</div>
               </div>
               
+              <!-- Lunar Table -->
               <div>
-                <h4 class="font-semibold text-gray-200 mb-2">🎯 Major Feeding Times</h4>
-                <div class="space-y-2">
-                  <div v-for="(time, index) in reportData.solunar.majorTimes" :key="index" 
-                       class="flex justify-between items-center p-2 bg-green-900/30 rounded">
-                    <span class="text-green-400">{{ time }}</span>
-                    <span class="text-xs text-gray-400">2hr window</span>
+                <h4 class="font-semibold text-gray-200 mb-3 text-sm">Daily Lunar Data</h4>
+                <div class="space-y-1 text-xs">
+                  <div class="grid grid-cols-3 gap-2 p-2 bg-gray-700 rounded font-semibold">
+                    <div class="text-gray-300">Date</div>
+                    <div class="text-gray-300">Rise/Set</div>
+                    <div class="text-gray-300">Phase</div>
+                  </div>
+                  <div v-for="(lunar, index) in reportData.lunarTable" :key="index" 
+                       class="grid grid-cols-3 gap-2 p-2 rounded"
+                       :class="index % 2 === 0 ? 'bg-gray-750' : 'bg-gray-700'">
+                    <div class="text-gray-300">{{ lunar.date }}</div>
+                    <div class="text-gray-300">{{ lunar.moonrise }}/{{ lunar.moonset }}</div>
+                    <div class="text-yellow-400">{{ lunar.illumination }}%</div>
                   </div>
                 </div>
               </div>
               
+              <!-- Solunar Times -->
               <div>
-                <h4 class="font-semibold text-gray-200 mb-2">⏰ Minor Feeding Times</h4>
+                <h4 class="font-semibold text-gray-200 mb-2 text-sm">Today's Solunar</h4>
                 <div class="space-y-2">
-                  <div v-for="(time, index) in reportData.solunar.minorTimes" :key="index" 
-                       class="flex justify-between items-center p-2 bg-yellow-900/30 rounded">
-                    <span class="text-yellow-400">{{ time }}</span>
-                    <span class="text-xs text-gray-400">1hr window</span>
+                  <div class="p-2 bg-green-900/30 rounded">
+                    <div class="font-semibold text-green-400 text-sm">Major Times</div>
+                    <div class="text-xs text-gray-300">
+                      {{ reportData.solunar.majorTimes.join(' • ') }}
+                    </div>
+                  </div>
+                  <div class="p-2 bg-yellow-900/30 rounded">
+                    <div class="font-semibold text-yellow-400 text-sm">Minor Times</div>
+                    <div class="text-xs text-gray-300">
+                      {{ reportData.solunar.minorTimes.join(' • ') }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -322,53 +342,45 @@
           <!-- Weather Details -->
           <UCard class="bg-gray-800 border-gray-700">
             <template #header>
-              <h3 class="text-lg font-semibold text-gray-100">🌤️ Weather Details</h3>
+              <h3 class="text-lg font-semibold text-gray-100">🌤️ Marine Weather</h3>
             </template>
             
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="text-gray-300">Air Temperature</span>
-                <span class="font-semibold text-orange-400">{{ Math.round(reportData.airTemp) }}°F</span>
+            <div class="space-y-3 text-sm">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex justify-between">
+                  <span class="text-gray-300">Humidity</span>
+                  <span class="font-semibold text-blue-400">{{ reportData.humidity }}%</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-300">Cloud Cover</span>
+                  <span class="font-semibold text-gray-400">{{ reportData.cloudCover }}%</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-300">UV Index</span>
+                  <span class="font-semibold" :class="getUVColor(reportData.uvIndex)">{{ reportData.uvIndex }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-300">Dew Point</span>
+                  <span class="font-semibold text-indigo-400">{{ Math.round(reportData.dewPoint) }}°F</span>
+                </div>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-300">Barometric Pressure</span>
-                <span class="font-semibold text-purple-400">{{ reportData.pressure.toFixed(2) }} inHg</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-300">Humidity</span>
-                <span class="font-semibold text-blue-400">{{ reportData.humidity }}%</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-300">Cloud Cover</span>
-                <span class="font-semibold text-gray-400">{{ reportData.cloudCover }}%</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-300">UV Index</span>
-                <span class="font-semibold" :class="getUVColor(reportData.uvIndex)">{{ reportData.uvIndex }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-300">Visibility</span>
-                <span class="font-semibold text-cyan-400">{{ reportData.visibility }} mi</span>
-              </div>
-            </div>
-          </UCard>
-
-          <!-- Fishing Insights -->
-          <UCard class="bg-gray-800 border-gray-700">
-            <template #header>
-              <h3 class="text-lg font-semibold text-gray-100">🎣 Pro Insights</h3>
-            </template>
-            
-            <div class="prose prose-invert max-w-none">
-              <div class="text-gray-300 leading-relaxed text-sm space-y-3">
-                <p>{{ reportData.aiInsights }}</p>
-                <div class="bg-gray-700 p-3 rounded-lg">
-                  <h4 class="text-sm font-semibold text-blue-400 mb-2">💡 Pro Tips</h4>
-                  <ul class="text-xs text-gray-400 space-y-1">
-                    <li>• Best times: {{ getBestFishingTimes() }}</li>
-                    <li>• Recommended depth: {{ getRecommendedDepth() }}</li>
-                    <li>• Optimal bait: {{ getRecommendedBait() }}</li>
-                  </ul>
+              
+              <!-- Marine-specific conditions -->
+              <div class="border-t border-gray-600 pt-3 mt-3">
+                <h4 class="font-semibold text-gray-200 mb-2">Marine Conditions</h4>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Sea State</span>
+                    <span class="font-semibold text-cyan-400">{{ getSeaState() }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Comfort Level</span>
+                    <span class="font-semibold" :class="getComfortColor()">{{ getComfortLevel() }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Best Times</span>
+                    <span class="font-semibold text-yellow-400">{{ getBestFishingTimes() }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -391,7 +403,8 @@ const isLoading = ref(false)
 const error = ref('')
 const reportData = ref(null)
 const marineChart = ref(null)
-const tempHistoryChart = ref(null)
+const tempChart = ref(null)
+const tideChart = ref(null)
 
 // Popular fishing locations with coordinates
 const popularLocations = [
@@ -417,9 +430,9 @@ const searchLocation = async () => {
     )
     
     if (foundLocation) {
-      await getFishingReport(foundLocation.lat, foundLocation.lon, foundLocation.name)
+      await getMarineReport(foundLocation.lat, foundLocation.lon, foundLocation.name)
     } else {
-      await getFishingReport(37.7749, -122.4194, searchQuery.value)
+      await getMarineReport(37.7749, -122.4194, searchQuery.value)
     }
   } catch (err) {
     error.value = 'Location not found. Try one of the popular locations.'
@@ -430,31 +443,32 @@ const searchLocation = async () => {
 
 const selectLocation = async (location) => {
   searchQuery.value = location.name
-  await getFishingReport(location.lat, location.lon, location.name)
+  await getMarineReport(location.lat, location.lon, location.name)
 }
 
-const getFishingReport = async (lat, lon, locationName) => {
+const getMarineReport = async (lat, lon, locationName) => {
   isLoading.value = true
   error.value = ''
   
   try {
-    const data = await generateComprehensiveFishingReport(lat, lon, locationName)
+    const data = await generateMarineReport(lat, lon, locationName)
     reportData.value = data
     
     nextTick(() => {
       createMarineChart()
-      createTempHistoryChart()
+      createTempChart()
+      createTideChart()
     })
   } catch (err) {
-    error.value = 'Failed to generate fishing report. Please try again.'
+    error.value = 'Failed to generate marine report. Please try again.'
     console.error('Report error:', err)
   } finally {
     isLoading.value = false
   }
 }
 
-// Generate comprehensive fishing report with enhanced data
-const generateComprehensiveFishingReport = async (lat, lon, locationName) => {
+// Generate comprehensive marine report
+const generateMarineReport = async (lat, lon, locationName) => {
   await new Promise(resolve => setTimeout(resolve, 2000))
   
   const now = new Date()
@@ -478,15 +492,9 @@ const generateComprehensiveFishingReport = async (lat, lon, locationName) => {
   const waveDirection = Math.round(Math.random() * 360)
   const swellPeriod = 8 + Math.random() * 8
   
-  // Calculate fishing score with more factors
-  const fishingScore = calculateAdvancedFishingScore({
-    waterTemp, windSpeed, waveHeight, season, isCoastal, airTemp
-  })
-  
   return {
     location: locationName,
     timestamp: now.toISOString(),
-    fishingScore: Math.round(fishingScore),
     waterTemp: waterTemp,
     airTemp: airTemp,
     windSpeed: windSpeed,
@@ -501,11 +509,12 @@ const generateComprehensiveFishingReport = async (lat, lon, locationName) => {
     cloudCover: Math.round(Math.random() * 100),
     uvIndex: Math.round(Math.random() * 11),
     visibility: Math.round(5 + Math.random() * 15),
+    dewPoint: airTemp - 5 - Math.random() * 10,
     tides: generateAdvancedTideData(),
     solunar: generateSolunarData(),
+    lunarTable: generateLunarTable(),
     historicalTemp: generateHistoricalTempData(waterTemp),
-    marineData: generateMarineData(),
-    aiInsights: generateAdvancedInsights(fishingScore, waterTemp, windSpeed, waveHeight, locationName, season)
+    marineData: generateMarineData(windSpeed, waveHeight)
   }
 }
 
@@ -524,7 +533,8 @@ const generateAdvancedTideData = () => {
       type: isHigh ? 'High Tide' : 'Low Tide',
       t: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       v: height,
-      datetime: time
+      datetime: time,
+      height: parseFloat(height)
     })
   }
   
@@ -532,22 +542,29 @@ const generateAdvancedTideData = () => {
 }
 
 const generateSolunarData = () => {
-  const now = new Date()
-  const majorTimes = []
-  const minorTimes = []
-  
-  // Generate major times (sunrise/sunset related)
-  majorTimes.push('06:30', '18:45')
-  
-  // Generate minor times (moonrise/moonset related)
-  minorTimes.push('00:15', '12:30')
-  
   return {
-    majorTimes,
-    minorTimes,
-    moonPhase: getCurrentMoonPhase(),
-    moonIllumination: Math.round(50 + Math.random() * 50)
+    majorTimes: ['06:30-08:30', '18:45-20:45'],
+    minorTimes: ['00:15-01:15', '12:30-13:30']
   }
+}
+
+const generateLunarTable = () => {
+  const table = []
+  const today = new Date()
+  
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(today.getTime() + i * 24 * 60 * 60 * 1000)
+    const illumination = 50 + Math.sin(i * 0.2) * 30 + Math.random() * 10
+    
+    table.push({
+      date: date.toLocaleDateString([], { month: 'short', day: 'numeric' }),
+      moonrise: `${Math.floor(Math.random() * 12) + 1}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
+      moonset: `${Math.floor(Math.random() * 12) + 1}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
+      illumination: Math.round(Math.max(0, Math.min(100, illumination)))
+    })
+  }
+  
+  return table
 }
 
 const generateHistoricalTempData = (currentTemp) => {
@@ -564,96 +581,100 @@ const generateHistoricalTempData = (currentTemp) => {
   }
 }
 
-const generateMarineData = () => {
+const generateMarineData = (windSpeed, waveHeight) => {
   return {
-    swellHeight: Array.from({ length: 24 }, () => 1 + Math.random() * 4),
-    windSpeed: Array.from({ length: 24 }, () => 5 + Math.random() * 15),
-    waterTemp: Array.from({ length: 24 }, (_, i) => 68 + Math.sin(i * 0.26) * 2 + Math.random() * 2),
+    windSpeed: Array.from({ length: 24 }, (_, i) => windSpeed + Math.sin(i * 0.3) * 3 + Math.random() * 2),
+    waveHeight: Array.from({ length: 24 }, (_, i) => waveHeight + Math.sin(i * 0.25) * 0.5 + Math.random() * 0.3),
+    tideHeights: Array.from({ length: 24 }, (_, i) => 3 + Math.sin(i * 0.5) * 2.5),
     timestamps: Array.from({ length: 24 }, (_, i) => 
       new Date(Date.now() + i * 60 * 60 * 1000).toISOString()
     )
   }
 }
 
-const calculateAdvancedFishingScore = ({ waterTemp, windSpeed, waveHeight, season, isCoastal, airTemp }) => {
-  let score = 50
+// Analysis functions
+const getSwellSafetyColor = () => {
+  if (!reportData.value) return 'text-gray-400'
+  const period = reportData.value.swellPeriod
+  const height = reportData.value.waveHeight
   
-  // Water temperature (optimal 62-78°F)
-  if (waterTemp >= 62 && waterTemp <= 78) score += 25
-  else if (waterTemp >= 55 && waterTemp <= 85) score += 15
-  else if (waterTemp >= 45 && waterTemp <= 90) score += 5
-  else score -= 15
-  
-  // Wind conditions (optimal 5-15 mph)
-  if (windSpeed >= 5 && windSpeed <= 15) score += 20
-  else if (windSpeed <= 25) score += 10
-  else score -= 20
-  
-  // Wave conditions
-  if (isCoastal) {
-    if (waveHeight >= 1 && waveHeight <= 3) score += 15
-    else if (waveHeight <= 5) score += 5
-    else score -= 15
-  }
-  
-  // Seasonal adjustments
-  const seasonBonus = { spring: 15, summer: 10, fall: 12, winter: 5 }[season]
-  score += seasonBonus
-  
-  // Air/water temperature differential
-  const tempDiff = Math.abs(airTemp - waterTemp)
-  if (tempDiff < 5) score += 5
-  else if (tempDiff > 15) score -= 5
-  
-  return Math.max(0, Math.min(100, score))
+  if (period < 8 && height > 3) return 'text-red-400'
+  if (period < 10 && height > 4) return 'text-yellow-400'
+  return 'text-green-400'
 }
 
-const generateAdvancedInsights = (score, waterTemp, windSpeed, waveHeight, location, season) => {
-  let insights = `Current fishing analysis for ${location}: `
+const getSwellSafetyText = () => {
+  if (!reportData.value) return 'Calculating...'
+  const period = reportData.value.swellPeriod
+  const height = reportData.value.waveHeight
   
-  if (score >= 85) {
-    insights += "Exceptional fishing conditions! This is prime time for multiple species. "
-  } else if (score >= 70) {
-    insights += "Excellent fishing conditions with multiple favorable factors aligned. "
-  } else if (score >= 55) {
-    insights += "Good fishing conditions - expect decent action with proper technique. "
-  } else if (score >= 40) {
-    insights += "Fair conditions with some challenges, but fish are still catchable. "
-  } else {
-    insights += "Tough conditions requiring patience and skill, but dedicated anglers can succeed. "
-  }
-
-  // Season-specific advice
-  const seasonAdvice = {
-    spring: "Spring conditions favor active feeding as fish prepare for spawning. Focus on transitional areas.",
-    summer: "Summer heat drives fish deeper. Early morning and late evening are most productive.",
-    fall: "Fall feeding frenzy is active as fish prepare for winter. Excellent baitfish activity.",
-    winter: "Winter fishing requires slower presentations in deeper, warmer water."
-  }
-  insights += seasonAdvice[season] + " "
-
-  // Water temperature insights
-  if (waterTemp >= 70 && waterTemp <= 75) {
-    insights += "Optimal water temperature for most game fish species. "
-  } else if (waterTemp < 60) {
-    insights += "Cool water requires slower presentations and deeper fishing. "
-  } else if (waterTemp > 80) {
-    insights += "Warm water fish are active but seek cooler depths during midday. "
-  }
-
-  // Wind and wave conditions
-  if (windSpeed <= 10 && waveHeight <= 2) {
-    insights += "Calm conditions are perfect for surface lures and sight fishing. "
-  } else if (windSpeed <= 20 && waveHeight <= 4) {
-    insights += "Active water helps oxygenation and covers your approach - great for aggressive fishing. "
-  } else {
-    insights += "Rough conditions require heavy tackle and protected fishing areas. "
-  }
-
-  return insights
+  if (period < 8 && height > 3) return 'Steep swell - Caution advised'
+  if (period < 10 && height > 4) return 'Moderate swell conditions'
+  return 'Safe swell conditions'
 }
 
-// Utility functions for display
+const getWindAnalysis = () => {
+  if (!reportData.value) return ''
+  const speed = reportData.value.windSpeed
+  
+  if (speed < 5) return 'Light winds, excellent for all fishing methods'
+  if (speed < 15) return 'Moderate winds, good for most techniques'
+  if (speed < 25) return 'Strong winds, consider wind protection'
+  return 'Very strong winds, challenging conditions'
+}
+
+const getSwellAnalysis = () => {
+  if (!reportData.value) return ''
+  const height = reportData.value.waveHeight
+  const period = reportData.value.swellPeriod
+  
+  if (height < 2) return `Small swell (${period}s period), ideal for small boats`
+  if (height < 4) return `Moderate swell (${period}s period), suitable for experienced anglers`
+  return `Large swell (${period}s period), experienced boaters only`
+}
+
+const getFishingConditionsAnalysis = () => {
+  if (!reportData.value) return ''
+  const wind = reportData.value.windSpeed
+  const waves = reportData.value.waveHeight
+  
+  if (wind < 10 && waves < 2) return 'Excellent conditions for all fishing styles'
+  if (wind < 20 && waves < 4) return 'Good conditions, active water helps fishing'
+  return 'Challenging conditions, consider protected areas'
+}
+
+const getSeaState = () => {
+  if (!reportData.value) return 'Calm'
+  const waves = reportData.value.waveHeight
+  
+  if (waves < 1) return 'Calm'
+  if (waves < 2) return 'Slight'
+  if (waves < 4) return 'Moderate'
+  if (waves < 6) return 'Rough'
+  return 'Very Rough'
+}
+
+const getComfortColor = () => {
+  if (!reportData.value) return 'text-green-400'
+  const waves = reportData.value.waveHeight
+  const wind = reportData.value.windSpeed
+  
+  if (waves < 2 && wind < 15) return 'text-green-400'
+  if (waves < 4 && wind < 25) return 'text-yellow-400'
+  return 'text-red-400'
+}
+
+const getComfortLevel = () => {
+  if (!reportData.value) return 'Excellent'
+  const waves = reportData.value.waveHeight
+  const wind = reportData.value.windSpeed
+  
+  if (waves < 2 && wind < 15) return 'Excellent'
+  if (waves < 4 && wind < 25) return 'Good'
+  return 'Challenging'
+}
+
+// Utility functions
 const getSeason = (month) => {
   if (month >= 11 || month <= 1) return 'winter'
   if (month >= 2 && month <= 4) return 'spring'
@@ -667,30 +688,6 @@ const getCurrentMoonPhase = () => {
   return phases[Math.floor(Math.random() * phases.length)]
 }
 
-const getFishingRating = (score) => {
-  if (score >= 85) return { label: 'Exceptional', color: 'green' }
-  if (score >= 70) return { label: 'Excellent', color: 'emerald' }
-  if (score >= 55) return { label: 'Good', color: 'blue' }
-  if (score >= 40) return { label: 'Fair', color: 'yellow' }
-  return { label: 'Poor', color: 'red' }
-}
-
-const getFishingScoreColor = (score) => {
-  if (score >= 85) return 'text-green-400'
-  if (score >= 70) return 'text-emerald-400'
-  if (score >= 55) return 'text-blue-400'
-  if (score >= 40) return 'text-yellow-400'
-  return 'text-red-400'
-}
-
-const getFishingScoreEmoji = (score) => {
-  if (score >= 85) return '🔥'
-  if (score >= 70) return '⭐'
-  if (score >= 55) return '👍'
-  if (score >= 40) return '😐'
-  return '😞'
-}
-
 const getWindDirection = (degrees) => {
   const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']
   return directions[Math.round(degrees / 22.5) % 16]
@@ -698,12 +695,6 @@ const getWindDirection = (degrees) => {
 
 const getWaveDirection = (degrees) => {
   return getWindDirection(degrees)
-}
-
-const getWaterTempTrend = (temp) => {
-  if (temp > 75) return 'Above Average'
-  if (temp < 60) return 'Below Average'
-  return 'Seasonal Normal'
 }
 
 const getUVColor = (uv) => {
@@ -745,20 +736,11 @@ const getBestFishingTimes = () => {
   return "Dawn & Dusk"
 }
 
-const getRecommendedDepth = () => {
-  if (!reportData.value) return "10-20ft"
-  return reportData.value.waterTemp > 75 ? "15-30ft" : "5-15ft"
-}
-
-const getRecommendedBait = () => {
-  if (!reportData.value) return "Live bait"
-  return reportData.value.windSpeed > 15 ? "Heavy lures" : "Live bait"
-}
-
 const formatTime = (date) => {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
+// Chart creation functions
 const createMarineChart = () => {
   if (!marineChart.value || !reportData.value) return
   
@@ -774,28 +756,22 @@ const createMarineChart = () => {
       }),
       datasets: [
         {
-          label: 'Wave Height (ft)',
-          data: data.swellHeight.slice(0, 12),
+          label: 'Wind Speed (mph)',
+          data: data.windSpeed.slice(0, 12),
           borderColor: 'rgb(34, 197, 94)',
           backgroundColor: 'rgba(34, 197, 94, 0.1)',
           yAxisID: 'y',
-          tension: 0.4
+          tension: 0.4,
+          fill: false
         },
         {
-          label: 'Wind Speed (mph)',
-          data: data.windSpeed.slice(0, 12),
-          borderColor: 'rgb(59, 130, 246)',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          yAxisID: 'y1',
-          tension: 0.4
-        },
-        {
-          label: 'Water Temp (°F)',
-          data: data.waterTemp.slice(0, 12),
-          borderColor: 'rgb(239, 68, 68)',
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
-          yAxisID: 'y2',
-          tension: 0.4
+          label: 'Swell Height (ft)',
+          data: data.waveHeight.slice(0, 12),
+          borderColor: 'rgb(6, 182, 212)',
+          backgroundColor: 'rgba(6, 182, 212, 0.1)',
+          yAxisID: 'y',
+          tension: 0.4,
+          fill: false
         }
       ]
     },
@@ -804,9 +780,7 @@ const createMarineChart = () => {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          labels: {
-            color: 'rgb(156, 163, 175)'
-          }
+          labels: { color: 'rgb(156, 163, 175)' }
         }
       },
       scales: {
@@ -818,31 +792,19 @@ const createMarineChart = () => {
           type: 'linear',
           display: true,
           position: 'left',
-          title: { display: true, text: 'Wave Height (ft)', color: 'rgb(34, 197, 94)' },
+          title: { display: true, text: 'Wind Speed (mph) / Swell Height (ft)', color: 'rgb(156, 163, 175)' },
           ticks: { color: 'rgb(156, 163, 175)' },
           grid: { color: 'rgba(75, 85, 99, 0.3)' }
-        },
-        y1: {
-          type: 'linear',
-          display: false,
-          position: 'right',
-          grid: { drawOnChartArea: false }
-        },
-        y2: {
-          type: 'linear',
-          display: false,
-          position: 'right',
-          grid: { drawOnChartArea: false }
         }
       }
     }
   })
 }
 
-const createTempHistoryChart = () => {
-  if (!tempHistoryChart.value || !reportData.value) return
+const createTempChart = () => {
+  if (!tempChart.value || !reportData.value) return
   
-  const ctx = tempHistoryChart.value.getContext('2d')
+  const ctx = tempChart.value.getContext('2d')
   const data = reportData.value.historicalTemp
   
   new Chart(ctx, {
@@ -863,7 +825,7 @@ const createTempHistoryChart = () => {
           tension: 0.4
         },
         {
-          label: 'Seasonal Average',
+          label: '30-Day Average',
           data: Array(30).fill(data.average),
           borderColor: 'rgb(156, 163, 175)',
           borderDash: [5, 5],
@@ -877,9 +839,7 @@ const createTempHistoryChart = () => {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          labels: {
-            color: 'rgb(156, 163, 175)'
-          }
+          labels: { color: 'rgb(156, 163, 175)' }
         }
       },
       scales: {
@@ -897,11 +857,56 @@ const createTempHistoryChart = () => {
   })
 }
 
+const createTideChart = () => {
+  if (!tideChart.value || !reportData.value) return
+  
+  const ctx = tideChart.value.getContext('2d')
+  const data = reportData.value.marineData
+  
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.timestamps.slice(0, 12).map((_, i) => {
+        const hour = new Date(Date.now() + i * 60 * 60 * 1000).getHours()
+        return `${hour}:00`
+      }),
+      datasets: [
+        {
+          label: 'Tide Height',
+          data: data.tideHeights.slice(0, 12),
+          borderColor: 'rgb(6, 182, 212)',
+          backgroundColor: 'rgba(6, 182, 212, 0.2)',
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: { color: 'rgb(156, 163, 175)', font: { size: 10 } },
+          grid: { color: 'rgba(75, 85, 99, 0.3)' }
+        },
+        y: {
+          title: { display: true, text: 'Height (ft)', color: 'rgb(156, 163, 175)' },
+          ticks: { color: 'rgb(156, 163, 175)', font: { size: 10 } },
+          grid: { color: 'rgba(75, 85, 99, 0.3)' }
+        }
+      }
+    }
+  })
+}
+
 // SEO
 useHead({
-  title: 'Professional Fishing Report - Marine Weather Dashboard',
+  title: 'Marine Conditions Pro - Professional Marine Weather Dashboard',
   meta: [
-    { name: 'description', content: 'Professional fishing reports with comprehensive marine weather, tides, solunar data, and historical water temperature analysis.' }
+    { name: 'description', content: 'Professional marine weather conditions with tides, swell analysis, and comprehensive fishing data.' }
   ]
 })
 </script>
