@@ -18,46 +18,85 @@
       </div>
     </header>
 
-    <!-- Location Search -->
+    <!-- Location and Date Search -->
     <div class="container mx-auto px-4 py-6">
       <UCard class="bg-gray-800 border-gray-700">
         <template #header>
           <h2 class="text-xl font-semibold text-gray-100 flex items-center">
-            📍 Marine Location
+            📍 Marine Location & Date
           </h2>
         </template>
         
         <div class="space-y-4">
-          <div class="flex gap-3">
-            <UInput
-              v-model="searchQuery"
-              placeholder="Enter fishing spot, coordinates, or city..."
-              size="lg"
-              class="flex-1"
-              :ui="{ base: 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400' }"
-              @keyup.enter="searchLocation"
-            />
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- State Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Select State</label>
+              <USelect
+                v-model="selectedState"
+                :options="stateOptions"
+                placeholder="Choose a state..."
+                size="lg"
+                :ui="{ base: 'bg-gray-700 border-gray-600 text-gray-100' }"
+                @change="updateLocationOptions"
+              />
+            </div>
+
+            <!-- Location Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Select Location</label>
+              <USelect
+                v-model="selectedLocation"
+                :options="locationOptions"
+                placeholder="Choose a location..."
+                size="lg"
+                :disabled="!selectedState"
+                :ui="{ base: 'bg-gray-700 border-gray-600 text-gray-100' }"
+              />
+            </div>
+
+            <!-- Date Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Select Date</label>
+              <UInput
+                v-model="selectedDate"
+                type="date"
+                size="lg"
+                :min="todayDate"
+                :max="maxDate"
+                :ui="{ base: 'bg-gray-700 border-gray-600 text-gray-100' }"
+              />
+            </div>
+          </div>
+
+          <div class="flex justify-center">
             <UButton 
               :loading="isSearching"
               color="blue" 
               size="lg"
+              :disabled="!selectedLocation"
               @click="searchLocation"
+              class="px-8"
             >
-              <Icon name="heroicons:magnifying-glass" class="w-5 h-5" />
+              <Icon name="heroicons:magnifying-glass" class="w-5 h-5 mr-2" />
+              Get Marine Conditions
             </UButton>
           </div>
           
-          <div class="flex flex-wrap gap-2">
-            <UButton 
-              v-for="location in filteredLocations" 
-              :key="location.name"
-              variant="outline" 
-              size="sm"
-              :ui="{ base: 'border-gray-600 text-gray-300 hover:bg-gray-700' }"
-              @click="selectLocation(location)"
-            >
-              {{ location.name }}
-            </UButton>
+          <div class="border-t border-gray-600 pt-4">
+            <div class="text-sm text-gray-400 mb-2">Quick Access - Popular Locations:</div>
+            <div class="flex flex-wrap gap-2">
+              <UButton 
+                v-for="location in popularQuickAccess" 
+                :key="location.name"
+                variant="outline" 
+                size="sm"
+                :ui="{ base: 'border-gray-600 text-gray-300 hover:bg-gray-700' }"
+                @click="selectQuickLocation(location)"
+              >
+                {{ location.name }}
+              </UButton>
+            </div>
           </div>
         </div>
       </UCard>
@@ -88,7 +127,15 @@
       <div class="mb-6">
         <UCard class="bg-gray-800 border-gray-700">
           <div class="py-4">
-            <h2 class="text-2xl font-bold text-gray-100 mb-2">{{ reportData.location }}</h2>
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="text-2xl font-bold text-gray-100">{{ reportData.location }}</h2>
+              <div class="text-right">
+                <div class="text-sm text-gray-400">Forecast Date</div>
+                <div class="text-lg font-semibold text-yellow-400">
+                  {{ formatReportDate(reportData.reportDate) }}
+                </div>
+              </div>
+            </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div class="text-center">
                 <div class="text-gray-400">Water Temp</div>
@@ -649,7 +696,9 @@ import { Chart, registerables } from 'chart.js'
 Chart.register(...registerables)
 
 // Reactive data
-const searchQuery = ref('')
+const selectedState = ref('')
+const selectedLocation = ref('')
+const selectedDate = ref('')
 const isSearching = ref(false)
 const isLoading = ref(false)
 const error = ref('')
@@ -660,202 +709,172 @@ const tideChart = ref(null)
 const tidesRenderChart = ref(null)
 const tidalCoefficientChart = ref(null)
 
-// Popular fishing locations with coordinates from Tides4Fishing database
-const popularLocations = [
-  // California - Major locations
-  { name: 'San Francisco Bay, CA', lat: 37.8063, lon: -122.4659, state: 'California' },
-  { name: 'Monterey Bay, CA', lat: 36.6089, lon: -121.8914, state: 'California' },
-  { name: 'Los Angeles Harbor, CA', lat: 33.7199, lon: -118.2728, state: 'California' },
-  { name: 'San Diego Bay, CA', lat: 32.7156, lon: -117.1767, state: 'California' },
-  { name: 'Half Moon Bay, CA', lat: 37.5025, lon: -122.4822, state: 'California' },
-  { name: 'Bodega Bay, CA', lat: 38.3083, lon: -123.0550, state: 'California' },
-  { name: 'Newport Beach, CA', lat: 33.6033, lon: -117.8830, state: 'California' },
-  { name: 'Santa Barbara, CA', lat: 34.4031, lon: -119.6928, state: 'California' },
-  { name: 'Crescent City, CA', lat: 41.7450, lon: -124.1830, state: 'California' },
-  { name: 'Avalon, Santa Catalina Island, CA', lat: 33.3450, lon: -118.3250, state: 'California' },
-  
-  // Florida - East Coast
-  { name: 'Miami Beach, FL', lat: 25.7617, lon: -80.1918, state: 'Florida' },
-  { name: 'Fort Lauderdale, FL', lat: 26.1224, lon: -80.1373, state: 'Florida' },
-  { name: 'Jacksonville, FL', lat: 30.3322, lon: -81.6557, state: 'Florida' },
-  { name: 'Daytona Beach, FL', lat: 29.2108, lon: -81.0228, state: 'Florida' },
-  { name: 'Cape Canaveral, FL', lat: 28.3922, lon: -80.6077, state: 'Florida' },
-  { name: 'West Palm Beach, FL', lat: 26.7153, lon: -80.0534, state: 'Florida' },
-  { name: 'St. Augustine, FL', lat: 29.9012, lon: -81.3124, state: 'Florida' },
-  { name: 'Fernandina Beach, FL', lat: 30.6691, lon: -81.4617, state: 'Florida' },
-  
-  // Florida - Gulf Coast
-  { name: 'Tampa Bay, FL', lat: 27.7663, lon: -82.6404, state: 'Florida' },
-  { name: 'Naples, FL', lat: 26.1420, lon: -81.7948, state: 'Florida' },
-  { name: 'Fort Myers, FL', lat: 26.5407, lon: -81.8723, state: 'Florida' },
-  { name: 'Clearwater, FL', lat: 27.9659, lon: -82.8001, state: 'Florida' },
-  { name: 'Sarasota, FL', lat: 27.3364, lon: -82.5307, state: 'Florida' },
-  { name: 'Pensacola, FL', lat: 30.4213, lon: -87.2169, state: 'Florida' },
-  { name: 'Panama City, FL', lat: 30.1588, lon: -85.6602, state: 'Florida' },
-  { name: 'Cedar Key, FL', lat: 29.1366, lon: -83.0351, state: 'Florida' },
-  { name: 'Apalachicola, FL', lat: 29.7252, lon: -84.9877, state: 'Florida' },
-  
-  // Florida Keys
-  { name: 'Key West, FL', lat: 24.5551, lon: -81.7800, state: 'Florida' },
-  { name: 'Key Largo, FL', lat: 25.0865, lon: -80.4473, state: 'Florida' },
-  { name: 'Islamorada, FL', lat: 24.9243, lon: -80.6278, state: 'Florida' },
-  { name: 'Marathon, FL', lat: 24.7136, lon: -81.0940, state: 'Florida' },
-  
-  // Texas
-  { name: 'Galveston, TX', lat: 29.3013, lon: -94.7977, state: 'Texas' },
-  { name: 'Corpus Christi, TX', lat: 27.8006, lon: -97.3964, state: 'Texas' },
-  { name: 'Port Aransas, TX', lat: 27.8339, lon: -97.0614, state: 'Texas' },
-  { name: 'South Padre Island, TX', lat: 26.0757, lon: -97.1669, state: 'Texas' },
-  { name: 'Port Arthur, TX', lat: 29.8850, lon: -93.9294, state: 'Texas' },
-  { name: 'Freeport, TX', lat: 28.9540, lon: -95.3097, state: 'Texas' },
-  { name: 'Matagorda, TX', lat: 28.6928, lon: -95.9686, state: 'Texas' },
-  
-  // North Carolina
-  { name: 'Outer Banks, NC', lat: 35.5585, lon: -75.4665, state: 'North Carolina' },
-  { name: 'Cape Hatteras, NC', lat: 35.2270, lon: -75.5011, state: 'North Carolina' },
-  { name: 'Wilmington, NC', lat: 34.2257, lon: -77.9447, state: 'North Carolina' },
-  { name: 'Morehead City, NC', lat: 34.7193, lon: -76.7326, state: 'North Carolina' },
-  { name: 'Nags Head, NC', lat: 35.9574, lon: -75.6240, state: 'North Carolina' },
-  { name: 'Duck, NC', lat: 36.1832, lon: -75.7454, state: 'North Carolina' },
-  
-  // South Carolina
-  { name: 'Charleston, SC', lat: 32.7767, lon: -79.9311, state: 'South Carolina' },
-  { name: 'Hilton Head Island, SC', lat: 32.2163, lon: -80.7526, state: 'South Carolina' },
-  { name: 'Myrtle Beach, SC', lat: 33.6891, lon: -78.8867, state: 'South Carolina' },
-  { name: 'Georgetown, SC', lat: 33.3771, lon: -79.2945, state: 'South Carolina' },
-  
-  // Georgia
-  { name: 'Savannah, GA', lat: 32.0835, lon: -81.0998, state: 'Georgia' },
-  { name: 'Brunswick, GA', lat: 31.1498, lon: -81.4915, state: 'Georgia' },
-  { name: 'St. Simons Island, GA', lat: 31.1535, lon: -81.3912, state: 'Georgia' },
-  { name: 'Jekyll Island, GA', lat: 31.0746, lon: -81.4207, state: 'Georgia' },
-  
-  // Virginia
-  { name: 'Virginia Beach, VA', lat: 36.8529, lon: -75.9780, state: 'Virginia' },
-  { name: 'Chesapeake Bay, VA', lat: 37.0871, lon: -76.3018, state: 'Virginia' },
-  { name: 'Norfolk, VA', lat: 36.8468, lon: -76.2852, state: 'Virginia' },
-  { name: 'Hampton, VA', lat: 37.0298, lon: -76.3452, state: 'Virginia' },
-  
-  // Maryland
-  { name: 'Ocean City, MD', lat: 38.3365, lon: -75.0849, state: 'Maryland' },
-  { name: 'Annapolis, MD', lat: 38.9784, lon: -76.4951, state: 'Maryland' },
-  { name: 'Baltimore, MD', lat: 39.2904, lon: -76.6122, state: 'Maryland' },
-  
-  // New Jersey
-  { name: 'Atlantic City, NJ', lat: 39.3643, lon: -74.4229, state: 'New Jersey' },
-  { name: 'Cape May, NJ', lat: 38.9351, lon: -74.9060, state: 'New Jersey' },
-  { name: 'Sandy Hook, NJ', lat: 40.4442, lon: -74.0065, state: 'New Jersey' },
-  { name: 'Barnegat Bay, NJ', lat: 39.7587, lon: -74.1143, state: 'New Jersey' },
-  
-  // New York
-  { name: 'Montauk Point, NY', lat: 41.0362, lon: -71.8506, state: 'New York' },
-  { name: 'Fire Island, NY', lat: 40.6448, lon: -73.1618, state: 'New York' },
-  { name: 'New York Harbor, NY', lat: 40.6642, lon: -74.0445, state: 'New York' },
-  { name: 'Long Island Sound, NY', lat: 40.9176, lon: -72.8777, state: 'New York' },
-  
-  // Massachusetts
-  { name: 'Cape Cod, MA', lat: 41.6688, lon: -70.2962, state: 'Massachusetts' },
-  { name: 'Boston Harbor, MA', lat: 42.3584, lon: -71.0598, state: 'Massachusetts' },
-  { name: 'Martha\'s Vineyard, MA', lat: 41.3888, lon: -70.6420, state: 'Massachusetts' },
-  { name: 'Nantucket, MA', lat: 41.2835, lon: -70.0995, state: 'Massachusetts' },
-  { name: 'Gloucester, MA', lat: 42.6142, lon: -70.6551, state: 'Massachusetts' },
-  
-  // Maine
-  { name: 'Portland, ME', lat: 43.6591, lon: -70.2568, state: 'Maine' },
-  { name: 'Bar Harbor, ME', lat: 44.3876, lon: -68.2039, state: 'Maine' },
-  { name: 'Kennebunkport, ME', lat: 43.3618, lon: -70.4767, state: 'Maine' },
-  { name: 'Camden, ME', lat: 44.2098, lon: -69.0648, state: 'Maine' },
-  
-  // Washington
-  { name: 'Seattle, WA', lat: 47.6062, lon: -122.3321, state: 'Washington' },
-  { name: 'Puget Sound, WA', lat: 47.2529, lon: -122.6587, state: 'Washington' },
-  { name: 'Westport, WA', lat: 46.9042, lon: -124.1085, state: 'Washington' },
-  { name: 'La Push, WA', lat: 47.9135, lon: -124.6351, state: 'Washington' },
-  
-  // Oregon
-  { name: 'Newport, OR', lat: 44.6267, lon: -124.0533, state: 'Oregon' },
-  { name: 'Astoria, OR', lat: 46.1879, lon: -123.8313, state: 'Oregon' },
-  { name: 'Bandon, OR', lat: 43.1193, lon: -124.4073, state: 'Oregon' },
-  { name: 'Brookings, OR', lat: 42.0526, lon: -124.2837, state: 'Oregon' },
-  
-  // Alaska
-  { name: 'Anchorage, AK', lat: 61.2181, lon: -149.9003, state: 'Alaska' },
-  { name: 'Juneau, AK', lat: 58.3019, lon: -134.4197, state: 'Alaska' },
-  { name: 'Ketchikan, AK', lat: 55.3422, lon: -131.6461, state: 'Alaska' },
-  { name: 'Sitka, AK', lat: 57.0531, lon: -135.3300, state: 'Alaska' },
-  
-  // Hawaii
-  { name: 'Honolulu, HI', lat: 21.3099, lon: -157.8581, state: 'Hawaii' },
-  { name: 'Hilo, HI', lat: 19.7297, lon: -155.0900, state: 'Hawaii' },
-  { name: 'Kailua-Kona, HI', lat: 19.6400, lon: -155.9969, state: 'Hawaii' },
-  { name: 'Lahaina, HI', lat: 20.8783, lon: -156.6825, state: 'Hawaii' },
-  
-  // Louisiana
-  { name: 'New Orleans, LA', lat: 29.9511, lon: -90.0715, state: 'Louisiana' },
-  { name: 'Grand Isle, LA', lat: 29.2633, lon: -89.9570, state: 'Louisiana' },
-  { name: 'Venice, LA', lat: 29.2758, lon: -89.3531, state: 'Louisiana' },
-  { name: 'Cameron, LA', lat: 29.7968, lon: -93.3268, state: 'Louisiana' },
-  
-  // Alabama
-  { name: 'Mobile Bay, AL', lat: 30.6954, lon: -88.0399, state: 'Alabama' },
-  { name: 'Gulf Shores, AL', lat: 30.2460, lon: -87.7008, state: 'Alabama' },
-  { name: 'Orange Beach, AL', lat: 30.2948, lon: -87.5708, state: 'Alabama' },
-  
-  // Mississippi
-  { name: 'Biloxi, MS', lat: 30.3960, lon: -88.8853, state: 'Mississippi' },
-  { name: 'Gulfport, MS', lat: 30.3674, lon: -89.0928, state: 'Mississippi' },
-  { name: 'Pass Christian, MS', lat: 30.3147, lon: -89.2473, state: 'Mississippi' }
-]
-
-// Filtered locations for autocomplete
-const filteredLocations = computed(() => {
-  if (!searchQuery.value || searchQuery.value.length < 2) {
-    return popularLocations.slice(0, 8) // Show first 8 popular locations
-  }
-  
-  const query = searchQuery.value.toLowerCase()
-  return popularLocations
-    .filter(location => 
-      location.name.toLowerCase().includes(query) ||
-      location.state.toLowerCase().includes(query)
-    )
-    .slice(0, 12) // Limit to 12 results
+// Date setup
+const todayDate = computed(() => {
+  const today = new Date()
+  return today.toISOString().split('T')[0]
 })
 
+const maxDate = computed(() => {
+  const maxDate = new Date()
+  maxDate.setDate(maxDate.getDate() + 14) // 14 days into the future
+  return maxDate.toISOString().split('T')[0]
+})
+
+// Initialize with today's date
+onMounted(() => {
+  selectedDate.value = todayDate.value
+})
+
+// Fishing locations organized by state from Tides4Fishing database
+const fishingLocationsByState = {
+  'California': [
+    { label: 'San Francisco Bay', value: 'San Francisco Bay, CA', lat: 37.8063, lon: -122.4659 },
+    { label: 'Monterey Bay', value: 'Monterey Bay, CA', lat: 36.6089, lon: -121.8914 },
+    { label: 'Los Angeles Harbor', value: 'Los Angeles Harbor, CA', lat: 33.7199, lon: -118.2728 },
+    { label: 'San Diego Bay', value: 'San Diego Bay, CA', lat: 32.7156, lon: -117.1767 },
+    { label: 'Half Moon Bay', value: 'Half Moon Bay, CA', lat: 37.5025, lon: -122.4822 },
+    { label: 'Bodega Bay', value: 'Bodega Bay, CA', lat: 38.3083, lon: -123.0550 },
+    { label: 'Newport Beach', value: 'Newport Beach, CA', lat: 33.6033, lon: -117.8830 },
+    { label: 'Santa Barbara', value: 'Santa Barbara, CA', lat: 34.4031, lon: -119.6928 },
+    { label: 'Crescent City', value: 'Crescent City, CA', lat: 41.7450, lon: -124.1830 },
+    { label: 'Santa Catalina Island', value: 'Avalon, Santa Catalina Island, CA', lat: 33.3450, lon: -118.3250 }
+  ],
+  'Florida': [
+    { label: 'Miami Beach', value: 'Miami Beach, FL', lat: 25.7617, lon: -80.1918 },
+    { label: 'Key West', value: 'Key West, FL', lat: 24.5551, lon: -81.7800 },
+    { label: 'Tampa Bay', value: 'Tampa Bay, FL', lat: 27.7663, lon: -82.6404 },
+    { label: 'Fort Lauderdale', value: 'Fort Lauderdale, FL', lat: 26.1224, lon: -80.1373 },
+    { label: 'Jacksonville', value: 'Jacksonville, FL', lat: 30.3322, lon: -81.6557 },
+    { label: 'Naples', value: 'Naples, FL', lat: 26.1420, lon: -81.7948 },
+    { label: 'Pensacola', value: 'Pensacola, FL', lat: 30.4213, lon: -87.2169 },
+    { label: 'Clearwater', value: 'Clearwater, FL', lat: 27.9659, lon: -82.8001 },
+    { label: 'Key Largo', value: 'Key Largo, FL', lat: 25.0865, lon: -80.4473 },
+    { label: 'Fort Myers', value: 'Fort Myers, FL', lat: 26.5407, lon: -81.8723 }
+  ],
+  'Texas': [
+    { label: 'Galveston', value: 'Galveston, TX', lat: 29.3013, lon: -94.7977 },
+    { label: 'Corpus Christi', value: 'Corpus Christi, TX', lat: 27.8006, lon: -97.3964 },
+    { label: 'South Padre Island', value: 'South Padre Island, TX', lat: 26.0757, lon: -97.1669 },
+    { label: 'Port Aransas', value: 'Port Aransas, TX', lat: 27.8339, lon: -97.0614 },
+    { label: 'Port Arthur', value: 'Port Arthur, TX', lat: 29.8850, lon: -93.9294 },
+    { label: 'Freeport', value: 'Freeport, TX', lat: 28.9540, lon: -95.3097 },
+    { label: 'Matagorda', value: 'Matagorda, TX', lat: 28.6928, lon: -95.9686 }
+  ],
+  'North Carolina': [
+    { label: 'Outer Banks', value: 'Outer Banks, NC', lat: 35.5585, lon: -75.4665 },
+    { label: 'Cape Hatteras', value: 'Cape Hatteras, NC', lat: 35.2270, lon: -75.5011 },
+    { label: 'Wilmington', value: 'Wilmington, NC', lat: 34.2257, lon: -77.9447 },
+    { label: 'Morehead City', value: 'Morehead City, NC', lat: 34.7193, lon: -76.7326 },
+    { label: 'Nags Head', value: 'Nags Head, NC', lat: 35.9574, lon: -75.6240 },
+    { label: 'Duck', value: 'Duck, NC', lat: 36.1832, lon: -75.7454 }
+  ],
+  'South Carolina': [
+    { label: 'Charleston', value: 'Charleston, SC', lat: 32.7767, lon: -79.9311 },
+    { label: 'Hilton Head Island', value: 'Hilton Head Island, SC', lat: 32.2163, lon: -80.7526 },
+    { label: 'Myrtle Beach', value: 'Myrtle Beach, SC', lat: 33.6891, lon: -78.8867 },
+    { label: 'Georgetown', value: 'Georgetown, SC', lat: 33.3771, lon: -79.2945 }
+  ],
+  'Massachusetts': [
+    { label: 'Cape Cod', value: 'Cape Cod, MA', lat: 41.6688, lon: -70.2962 },
+    { label: 'Boston Harbor', value: 'Boston Harbor, MA', lat: 42.3584, lon: -71.0598 },
+    { label: 'Martha\'s Vineyard', value: 'Martha\'s Vineyard, MA', lat: 41.3888, lon: -70.6420 },
+    { label: 'Nantucket', value: 'Nantucket, MA', lat: 41.2835, lon: -70.0995 },
+    { label: 'Gloucester', value: 'Gloucester, MA', lat: 42.6142, lon: -70.6551 }
+  ],
+  'New York': [
+    { label: 'Montauk Point', value: 'Montauk Point, NY', lat: 41.0362, lon: -71.8506 },
+    { label: 'Fire Island', value: 'Fire Island, NY', lat: 40.6448, lon: -73.1618 },
+    { label: 'New York Harbor', value: 'New York Harbor, NY', lat: 40.6642, lon: -74.0445 },
+    { label: 'Long Island Sound', value: 'Long Island Sound, NY', lat: 40.9176, lon: -72.8777 }
+  ],
+  'Virginia': [
+    { label: 'Virginia Beach', value: 'Virginia Beach, VA', lat: 36.8529, lon: -75.9780 },
+    { label: 'Chesapeake Bay', value: 'Chesapeake Bay, VA', lat: 37.0871, lon: -76.3018 },
+    { label: 'Norfolk', value: 'Norfolk, VA', lat: 36.8468, lon: -76.2852 },
+    { label: 'Hampton', value: 'Hampton, VA', lat: 37.0298, lon: -76.3452 }
+  ]
+}
+
+// State options for dropdown
+const stateOptions = computed(() => {
+  return Object.keys(fishingLocationsByState).map(state => ({
+    label: state,
+    value: state
+  }))
+})
+
+// Location options based on selected state
+const locationOptions = ref([])
+
+const updateLocationOptions = () => {
+  if (selectedState.value && fishingLocationsByState[selectedState.value]) {
+    locationOptions.value = fishingLocationsByState[selectedState.value]
+  } else {
+    locationOptions.value = []
+    selectedLocation.value = ''
+  }
+}
+
+// Quick access popular locations
+const popularQuickAccess = [
+  { name: 'San Francisco Bay', state: 'California', lat: 37.8063, lon: -122.4659 },
+  { name: 'Miami Beach', state: 'Florida', lat: 25.7617, lon: -80.1918 },
+  { name: 'Cape Cod', state: 'Massachusetts', lat: 41.6688, lon: -70.2962 },
+  { name: 'Outer Banks', state: 'North Carolina', lat: 35.5585, lon: -75.4665 },
+  { name: 'Galveston', state: 'Texas', lat: 29.3013, lon: -94.7977 },
+  { name: 'Charleston', state: 'South Carolina', lat: 32.7767, lon: -79.9311 }
+]
+
 const searchLocation = async () => {
-  if (!searchQuery.value.trim()) return
+  if (!selectedLocation.value) return
   
   isSearching.value = true
   error.value = ''
   
   try {
-    const foundLocation = popularLocations.find(loc => 
-      loc.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-    
-    if (foundLocation) {
-      await getMarineReport(foundLocation.lat, foundLocation.lon, foundLocation.name)
-    } else {
-      await getMarineReport(37.7749, -122.4194, searchQuery.value)
+    // Find the selected location data
+    const locationData = findLocationData(selectedLocation.value)
+    if (locationData) {
+      await getMarineReport(locationData.lat, locationData.lon, locationData.value, selectedDate.value)
     }
   } catch (err) {
-    error.value = 'Location not found. Try one of the popular locations.'
+    error.value = 'Failed to fetch marine conditions. Please try again.'
   } finally {
     isSearching.value = false
   }
 }
 
-const selectLocation = async (location) => {
-  searchQuery.value = location.name
-  await getMarineReport(location.lat, location.lon, location.name)
+const selectQuickLocation = async (location) => {
+  // Set the state and location for quick access
+  selectedState.value = location.state
+  updateLocationOptions()
+  
+  // Find the matching location in the state options
+  const locationOption = locationOptions.value.find(opt => 
+    opt.label === location.name
+  )
+  
+  if (locationOption) {
+    selectedLocation.value = locationOption.value
+    await searchLocation()
+  }
 }
 
-const getMarineReport = async (lat, lon, locationName) => {
+const findLocationData = (locationValue) => {
+  for (const state in fishingLocationsByState) {
+    const location = fishingLocationsByState[state].find(loc => loc.value === locationValue)
+    if (location) return location
+  }
+  return null
+}
+
+const getMarineReport = async (lat, lon, locationName, selectedDate = null) => {
   isLoading.value = true
   error.value = ''
   
   try {
-    const data = await generateMarineReport(lat, lon, locationName)
+    const data = await generateMarineReport(lat, lon, locationName, selectedDate)
     reportData.value = data
     
     nextTick(() => {
@@ -874,11 +893,11 @@ const getMarineReport = async (lat, lon, locationName) => {
 }
 
 // Generate comprehensive marine report
-const generateMarineReport = async (lat, lon, locationName) => {
+const generateMarineReport = async (lat, lon, locationName, selectedDate = null) => {
   await new Promise(resolve => setTimeout(resolve, 2000))
   
-  const now = new Date()
-  const season = getSeason(now.getMonth())
+  const reportDate = selectedDate ? new Date(selectedDate) : new Date()
+  const season = getSeason(reportDate.getMonth())
   const isCoastal = Math.abs(lat) < 45
   
   // Enhanced water temperature calculations
@@ -901,7 +920,8 @@ const generateMarineReport = async (lat, lon, locationName) => {
   
   return {
     location: locationName,
-    timestamp: now.toISOString(),
+    timestamp: reportDate.toISOString(),
+    reportDate: selectedDate || reportDate.toISOString().split('T')[0],
     waterTemp: waterTemp,
     airTemp: airTemp,
     windSpeed: windSpeed,
@@ -919,14 +939,14 @@ const generateMarineReport = async (lat, lon, locationName) => {
     visibility: Math.round(5 + Math.random() * 15),
     dewPoint: airTemp - 5 - Math.random() * 10,
     weatherTable: generateWeatherTable(windSpeed, airTemp),
-    tides: generateAdvancedTideData(),
+    tides: generateAdvancedTideData(selectedDate),
     solunar: generateSolunarData(),
-    lunarTable: generateLunarTable(),
+    lunarTable: generateLunarTable(selectedDate),
     tidalCoefficient: generateTidalCoefficient(),
     historicalTemp: generateHistoricalTempData(waterTemp),
     historicalSummary: generateHistoricalSummary(),
-    marineData: generateMarineData(windSpeed, waveHeight),
-    sunData: generateSunData()
+    marineData: generateMarineData(windSpeed, waveHeight, selectedDate),
+    sunData: generateSunData(selectedDate)
   }
 }
 
@@ -962,12 +982,12 @@ const generateTidalCoefficient = () => {
   }
 }
 
-const generateSunData = () => {
-  const now = new Date()
-  const sunrise = new Date(now)
+const generateSunData = (selectedDate = null) => {
+  const baseDate = selectedDate ? new Date(selectedDate) : new Date()
+  const sunrise = new Date(baseDate)
   sunrise.setHours(6, 30 + Math.random() * 60, 0, 0)
   
-  const sunset = new Date(now)
+  const sunset = new Date(baseDate)
   sunset.setHours(18, 30 + Math.random() * 60, 0, 0)
   
   return {
@@ -1013,12 +1033,13 @@ const generateHistoricalSummary = () => {
   return summary
 }
 
-const generateAdvancedTideData = () => {
+const generateAdvancedTideData = (selectedDate = null) => {
   const tides = []
-  const now = new Date()
+  const baseDate = selectedDate ? new Date(selectedDate) : new Date()
+  baseDate.setHours(0, 0, 0, 0) // Start from midnight
   
   for (let i = 0; i < 12; i++) {
-    const time = new Date(now.getTime() + (i * 6.25 * 60 * 60 * 1000))
+    const time = new Date(baseDate.getTime() + (i * 6.25 * 60 * 60 * 1000))
     const isHigh = i % 2 === 0
     const height = isHigh ? 
       (4 + Math.random() * 3).toFixed(1) : 
@@ -1043,12 +1064,12 @@ const generateSolunarData = () => {
   }
 }
 
-const generateLunarTable = () => {
+const generateLunarTable = (selectedDate = null) => {
   const table = []
-  const today = new Date()
+  const baseDate = selectedDate ? new Date(selectedDate) : new Date()
   
   for (let i = 0; i < 7; i++) {
-    const date = new Date(today.getTime() + i * 24 * 60 * 60 * 1000)
+    const date = new Date(baseDate.getTime() + i * 24 * 60 * 60 * 1000)
     const illumination = 50 + Math.sin(i * 0.2) * 30 + Math.random() * 10
     
     table.push({
@@ -1076,13 +1097,20 @@ const generateHistoricalTempData = (currentTemp) => {
   }
 }
 
-const generateMarineData = (windSpeed, waveHeight) => {
+const generateMarineData = (windSpeed, waveHeight, selectedDate = null) => {
+  // Use selected date or current date
+  const baseDate = selectedDate ? new Date(selectedDate) : new Date()
+  baseDate.setHours(0, 0, 0, 0) // Start from midnight
+  
+  const baseSwellPeriod = 8 + Math.random() * 8
+  
   return {
     windSpeed: Array.from({ length: 24 }, (_, i) => windSpeed + Math.sin(i * 0.3) * 3 + Math.random() * 2),
     waveHeight: Array.from({ length: 24 }, (_, i) => waveHeight + Math.sin(i * 0.25) * 0.5 + Math.random() * 0.3),
+    swellPeriod: Array.from({ length: 24 }, (_, i) => baseSwellPeriod + Math.sin(i * 0.2) * 2 + Math.random() * 1),
     tideHeights: Array.from({ length: 24 }, (_, i) => 3 + Math.sin(i * 0.5) * 2.5),
     timestamps: Array.from({ length: 24 }, (_, i) => 
-      new Date(Date.now() + i * 60 * 60 * 1000).toISOString()
+      new Date(baseDate.getTime() + i * 60 * 60 * 1000).toISOString()
     )
   }
 }
@@ -1179,10 +1207,36 @@ const getSwellSafetyText = () => {
   if (!reportData.value) return 'Calculating...'
   const period = reportData.value.swellPeriod
   const height = reportData.value.waveHeight
+  const wind = reportData.value.windSpeed
   
-  if (period < 8 && height > 3) return 'Steep swell - Caution advised'
-  if (period < 10 && height > 4) return 'Moderate swell conditions'
-  return 'Safe swell conditions'
+  // Unified assessment considering all factors
+  if (period < 8 && height > 3) return 'Steep swell - Challenging conditions'
+  if (height > 4 || wind > 25) return 'Rough conditions'
+  if (height < 2 && wind < 15 && period > 10) return 'Excellent conditions'
+  return 'Good conditions'
+}
+
+const getComfortLevel = () => {
+  if (!reportData.value) return 'Excellent'
+  const waves = reportData.value.waveHeight
+  const wind = reportData.value.windSpeed
+  const period = reportData.value.swellPeriod
+  
+  // Unified assessment matching swell safety
+  if (period < 8 && waves > 3) return 'Challenging'
+  if (waves > 4 || wind > 25) return 'Rough'
+  if (waves < 2 && wind < 15 && period > 10) return 'Excellent'
+  return 'Good'
+}
+
+const getComfortColor = () => {
+  if (!reportData.value) return 'text-green-400'
+  const comfort = getComfortLevel()
+  
+  if (comfort === 'Excellent') return 'text-green-400'
+  if (comfort === 'Good') return 'text-blue-400'
+  if (comfort === 'Rough') return 'text-yellow-400'
+  return 'text-red-400'
 }
 
 const getWindAnalysis = () => {
@@ -1226,25 +1280,9 @@ const getSeaState = () => {
   return 'Very Rough'
 }
 
-const getComfortColor = () => {
-  if (!reportData.value) return 'text-green-400'
-  const waves = reportData.value.waveHeight
-  const wind = reportData.value.windSpeed
-  
-  if (waves < 2 && wind < 15) return 'text-green-400'
-  if (waves < 4 && wind < 25) return 'text-yellow-400'
-  return 'text-red-400'
-}
 
-const getComfortLevel = () => {
-  if (!reportData.value) return 'Excellent'
-  const waves = reportData.value.waveHeight
-  const wind = reportData.value.windSpeed
-  
-  if (waves < 2 && wind < 15) return 'Excellent'
-  if (waves < 4 && wind < 25) return 'Good'
-  return 'Challenging'
-}
+
+
 
 // Utility functions
 const getSeason = (month) => {
@@ -1312,6 +1350,30 @@ const formatTime = (date) => {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
+const formatReportDate = (dateStr) => {
+  const date = new Date(dateStr)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  const reportDate = new Date(date)
+  reportDate.setHours(0, 0, 0, 0)
+  
+  const diffTime = reportDate.getTime() - today.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Tomorrow'
+  if (diffDays === -1) return 'Yesterday'
+  if (diffDays > 1) return `In ${diffDays} days`
+  if (diffDays < -1) return `${Math.abs(diffDays)} days ago`
+  
+  return date.toLocaleDateString([], { 
+    weekday: 'short', 
+    month: 'short', 
+    day: 'numeric' 
+  })
+}
+
 // Chart creation functions
 const createMarineChart = () => {
   if (!marineChart.value || !reportData.value) return
@@ -1322,28 +1384,41 @@ const createMarineChart = () => {
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: data.timestamps.slice(0, 12).map((_, i) => {
-        const hour = new Date(Date.now() + i * 60 * 60 * 1000).getHours()
-        return `${hour}:00`
+      labels: data.timestamps.map((timestamp, i) => {
+        const hour = new Date(timestamp).getHours()
+        return `${hour.toString().padStart(2, '0')}:00`
       }),
       datasets: [
         {
           label: 'Wind Speed (mph)',
-          data: data.windSpeed.slice(0, 12),
+          data: data.windSpeed,
           borderColor: 'rgb(34, 197, 94)',
           backgroundColor: 'rgba(34, 197, 94, 0.1)',
           yAxisID: 'y',
           tension: 0.4,
-          fill: false
+          fill: false,
+          borderWidth: 2
         },
         {
           label: 'Swell Height (ft)',
-          data: data.waveHeight.slice(0, 12),
+          data: data.waveHeight,
           borderColor: 'rgb(6, 182, 212)',
           backgroundColor: 'rgba(6, 182, 212, 0.1)',
           yAxisID: 'y1',
           tension: 0.4,
-          fill: false
+          fill: false,
+          borderWidth: 2
+        },
+        {
+          label: 'Swell Period (s)',
+          data: data.swellPeriod,
+          borderColor: 'rgb(147, 51, 234)',
+          backgroundColor: 'rgba(147, 51, 234, 0.1)',
+          yAxisID: 'y1',
+          tension: 0.4,
+          fill: false,
+          borderWidth: 2,
+          borderDash: [5, 5]
         }
       ]
     },
@@ -1357,7 +1432,10 @@ const createMarineChart = () => {
       },
       scales: {
         x: {
-          ticks: { color: 'rgb(156, 163, 175)' },
+          ticks: { 
+            color: 'rgb(156, 163, 175)',
+            maxTicksLimit: 12
+          },
           grid: { color: 'rgba(75, 85, 99, 0.3)' }
         },
         y: {
@@ -1372,7 +1450,7 @@ const createMarineChart = () => {
           type: 'linear',
           display: true,
           position: 'right',
-          title: { display: true, text: 'Swell Height (ft)', color: 'rgb(6, 182, 212)' },
+          title: { display: true, text: 'Swell Height (ft) / Period (s)', color: 'rgb(6, 182, 212)' },
           ticks: { color: 'rgb(156, 163, 175)' },
           grid: { drawOnChartArea: false }
         }
