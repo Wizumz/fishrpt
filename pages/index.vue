@@ -49,7 +49,7 @@
           
           <div class="flex flex-wrap gap-2">
             <UButton 
-              v-for="location in popularLocations" 
+              v-for="location in filteredLocations" 
               :key="location.name"
               variant="outline" 
               size="sm"
@@ -660,17 +660,167 @@ const tideChart = ref(null)
 const tidesRenderChart = ref(null)
 const tidalCoefficientChart = ref(null)
 
-// Popular fishing locations with coordinates
+// Popular fishing locations with coordinates from Tides4Fishing database
 const popularLocations = [
-  { name: 'San Francisco Bay', lat: 37.7749, lon: -122.4194 },
-  { name: 'Miami Beach', lat: 25.7617, lon: -80.1918 },
-  { name: 'Outer Banks, NC', lat: 35.5585, lon: -75.4665 },
-  { name: 'Key West', lat: 24.5551, lon: -81.7800 },
-  { name: 'Cape Cod', lat: 41.6688, lon: -70.2962 },
-  { name: 'Monterey Bay', lat: 36.6002, lon: -121.8947 },
-  { name: 'Chesapeake Bay', lat: 39.0458, lon: -76.6413 },
-  { name: 'Gulf Shores, AL', lat: 30.2460, lon: -87.7008 }
+  // California - Major locations
+  { name: 'San Francisco Bay, CA', lat: 37.8063, lon: -122.4659, state: 'California' },
+  { name: 'Monterey Bay, CA', lat: 36.6089, lon: -121.8914, state: 'California' },
+  { name: 'Los Angeles Harbor, CA', lat: 33.7199, lon: -118.2728, state: 'California' },
+  { name: 'San Diego Bay, CA', lat: 32.7156, lon: -117.1767, state: 'California' },
+  { name: 'Half Moon Bay, CA', lat: 37.5025, lon: -122.4822, state: 'California' },
+  { name: 'Bodega Bay, CA', lat: 38.3083, lon: -123.0550, state: 'California' },
+  { name: 'Newport Beach, CA', lat: 33.6033, lon: -117.8830, state: 'California' },
+  { name: 'Santa Barbara, CA', lat: 34.4031, lon: -119.6928, state: 'California' },
+  { name: 'Crescent City, CA', lat: 41.7450, lon: -124.1830, state: 'California' },
+  { name: 'Avalon, Santa Catalina Island, CA', lat: 33.3450, lon: -118.3250, state: 'California' },
+  
+  // Florida - East Coast
+  { name: 'Miami Beach, FL', lat: 25.7617, lon: -80.1918, state: 'Florida' },
+  { name: 'Fort Lauderdale, FL', lat: 26.1224, lon: -80.1373, state: 'Florida' },
+  { name: 'Jacksonville, FL', lat: 30.3322, lon: -81.6557, state: 'Florida' },
+  { name: 'Daytona Beach, FL', lat: 29.2108, lon: -81.0228, state: 'Florida' },
+  { name: 'Cape Canaveral, FL', lat: 28.3922, lon: -80.6077, state: 'Florida' },
+  { name: 'West Palm Beach, FL', lat: 26.7153, lon: -80.0534, state: 'Florida' },
+  { name: 'St. Augustine, FL', lat: 29.9012, lon: -81.3124, state: 'Florida' },
+  { name: 'Fernandina Beach, FL', lat: 30.6691, lon: -81.4617, state: 'Florida' },
+  
+  // Florida - Gulf Coast
+  { name: 'Tampa Bay, FL', lat: 27.7663, lon: -82.6404, state: 'Florida' },
+  { name: 'Naples, FL', lat: 26.1420, lon: -81.7948, state: 'Florida' },
+  { name: 'Fort Myers, FL', lat: 26.5407, lon: -81.8723, state: 'Florida' },
+  { name: 'Clearwater, FL', lat: 27.9659, lon: -82.8001, state: 'Florida' },
+  { name: 'Sarasota, FL', lat: 27.3364, lon: -82.5307, state: 'Florida' },
+  { name: 'Pensacola, FL', lat: 30.4213, lon: -87.2169, state: 'Florida' },
+  { name: 'Panama City, FL', lat: 30.1588, lon: -85.6602, state: 'Florida' },
+  { name: 'Cedar Key, FL', lat: 29.1366, lon: -83.0351, state: 'Florida' },
+  { name: 'Apalachicola, FL', lat: 29.7252, lon: -84.9877, state: 'Florida' },
+  
+  // Florida Keys
+  { name: 'Key West, FL', lat: 24.5551, lon: -81.7800, state: 'Florida' },
+  { name: 'Key Largo, FL', lat: 25.0865, lon: -80.4473, state: 'Florida' },
+  { name: 'Islamorada, FL', lat: 24.9243, lon: -80.6278, state: 'Florida' },
+  { name: 'Marathon, FL', lat: 24.7136, lon: -81.0940, state: 'Florida' },
+  
+  // Texas
+  { name: 'Galveston, TX', lat: 29.3013, lon: -94.7977, state: 'Texas' },
+  { name: 'Corpus Christi, TX', lat: 27.8006, lon: -97.3964, state: 'Texas' },
+  { name: 'Port Aransas, TX', lat: 27.8339, lon: -97.0614, state: 'Texas' },
+  { name: 'South Padre Island, TX', lat: 26.0757, lon: -97.1669, state: 'Texas' },
+  { name: 'Port Arthur, TX', lat: 29.8850, lon: -93.9294, state: 'Texas' },
+  { name: 'Freeport, TX', lat: 28.9540, lon: -95.3097, state: 'Texas' },
+  { name: 'Matagorda, TX', lat: 28.6928, lon: -95.9686, state: 'Texas' },
+  
+  // North Carolina
+  { name: 'Outer Banks, NC', lat: 35.5585, lon: -75.4665, state: 'North Carolina' },
+  { name: 'Cape Hatteras, NC', lat: 35.2270, lon: -75.5011, state: 'North Carolina' },
+  { name: 'Wilmington, NC', lat: 34.2257, lon: -77.9447, state: 'North Carolina' },
+  { name: 'Morehead City, NC', lat: 34.7193, lon: -76.7326, state: 'North Carolina' },
+  { name: 'Nags Head, NC', lat: 35.9574, lon: -75.6240, state: 'North Carolina' },
+  { name: 'Duck, NC', lat: 36.1832, lon: -75.7454, state: 'North Carolina' },
+  
+  // South Carolina
+  { name: 'Charleston, SC', lat: 32.7767, lon: -79.9311, state: 'South Carolina' },
+  { name: 'Hilton Head Island, SC', lat: 32.2163, lon: -80.7526, state: 'South Carolina' },
+  { name: 'Myrtle Beach, SC', lat: 33.6891, lon: -78.8867, state: 'South Carolina' },
+  { name: 'Georgetown, SC', lat: 33.3771, lon: -79.2945, state: 'South Carolina' },
+  
+  // Georgia
+  { name: 'Savannah, GA', lat: 32.0835, lon: -81.0998, state: 'Georgia' },
+  { name: 'Brunswick, GA', lat: 31.1498, lon: -81.4915, state: 'Georgia' },
+  { name: 'St. Simons Island, GA', lat: 31.1535, lon: -81.3912, state: 'Georgia' },
+  { name: 'Jekyll Island, GA', lat: 31.0746, lon: -81.4207, state: 'Georgia' },
+  
+  // Virginia
+  { name: 'Virginia Beach, VA', lat: 36.8529, lon: -75.9780, state: 'Virginia' },
+  { name: 'Chesapeake Bay, VA', lat: 37.0871, lon: -76.3018, state: 'Virginia' },
+  { name: 'Norfolk, VA', lat: 36.8468, lon: -76.2852, state: 'Virginia' },
+  { name: 'Hampton, VA', lat: 37.0298, lon: -76.3452, state: 'Virginia' },
+  
+  // Maryland
+  { name: 'Ocean City, MD', lat: 38.3365, lon: -75.0849, state: 'Maryland' },
+  { name: 'Annapolis, MD', lat: 38.9784, lon: -76.4951, state: 'Maryland' },
+  { name: 'Baltimore, MD', lat: 39.2904, lon: -76.6122, state: 'Maryland' },
+  
+  // New Jersey
+  { name: 'Atlantic City, NJ', lat: 39.3643, lon: -74.4229, state: 'New Jersey' },
+  { name: 'Cape May, NJ', lat: 38.9351, lon: -74.9060, state: 'New Jersey' },
+  { name: 'Sandy Hook, NJ', lat: 40.4442, lon: -74.0065, state: 'New Jersey' },
+  { name: 'Barnegat Bay, NJ', lat: 39.7587, lon: -74.1143, state: 'New Jersey' },
+  
+  // New York
+  { name: 'Montauk Point, NY', lat: 41.0362, lon: -71.8506, state: 'New York' },
+  { name: 'Fire Island, NY', lat: 40.6448, lon: -73.1618, state: 'New York' },
+  { name: 'New York Harbor, NY', lat: 40.6642, lon: -74.0445, state: 'New York' },
+  { name: 'Long Island Sound, NY', lat: 40.9176, lon: -72.8777, state: 'New York' },
+  
+  // Massachusetts
+  { name: 'Cape Cod, MA', lat: 41.6688, lon: -70.2962, state: 'Massachusetts' },
+  { name: 'Boston Harbor, MA', lat: 42.3584, lon: -71.0598, state: 'Massachusetts' },
+  { name: 'Martha\'s Vineyard, MA', lat: 41.3888, lon: -70.6420, state: 'Massachusetts' },
+  { name: 'Nantucket, MA', lat: 41.2835, lon: -70.0995, state: 'Massachusetts' },
+  { name: 'Gloucester, MA', lat: 42.6142, lon: -70.6551, state: 'Massachusetts' },
+  
+  // Maine
+  { name: 'Portland, ME', lat: 43.6591, lon: -70.2568, state: 'Maine' },
+  { name: 'Bar Harbor, ME', lat: 44.3876, lon: -68.2039, state: 'Maine' },
+  { name: 'Kennebunkport, ME', lat: 43.3618, lon: -70.4767, state: 'Maine' },
+  { name: 'Camden, ME', lat: 44.2098, lon: -69.0648, state: 'Maine' },
+  
+  // Washington
+  { name: 'Seattle, WA', lat: 47.6062, lon: -122.3321, state: 'Washington' },
+  { name: 'Puget Sound, WA', lat: 47.2529, lon: -122.6587, state: 'Washington' },
+  { name: 'Westport, WA', lat: 46.9042, lon: -124.1085, state: 'Washington' },
+  { name: 'La Push, WA', lat: 47.9135, lon: -124.6351, state: 'Washington' },
+  
+  // Oregon
+  { name: 'Newport, OR', lat: 44.6267, lon: -124.0533, state: 'Oregon' },
+  { name: 'Astoria, OR', lat: 46.1879, lon: -123.8313, state: 'Oregon' },
+  { name: 'Bandon, OR', lat: 43.1193, lon: -124.4073, state: 'Oregon' },
+  { name: 'Brookings, OR', lat: 42.0526, lon: -124.2837, state: 'Oregon' },
+  
+  // Alaska
+  { name: 'Anchorage, AK', lat: 61.2181, lon: -149.9003, state: 'Alaska' },
+  { name: 'Juneau, AK', lat: 58.3019, lon: -134.4197, state: 'Alaska' },
+  { name: 'Ketchikan, AK', lat: 55.3422, lon: -131.6461, state: 'Alaska' },
+  { name: 'Sitka, AK', lat: 57.0531, lon: -135.3300, state: 'Alaska' },
+  
+  // Hawaii
+  { name: 'Honolulu, HI', lat: 21.3099, lon: -157.8581, state: 'Hawaii' },
+  { name: 'Hilo, HI', lat: 19.7297, lon: -155.0900, state: 'Hawaii' },
+  { name: 'Kailua-Kona, HI', lat: 19.6400, lon: -155.9969, state: 'Hawaii' },
+  { name: 'Lahaina, HI', lat: 20.8783, lon: -156.6825, state: 'Hawaii' },
+  
+  // Louisiana
+  { name: 'New Orleans, LA', lat: 29.9511, lon: -90.0715, state: 'Louisiana' },
+  { name: 'Grand Isle, LA', lat: 29.2633, lon: -89.9570, state: 'Louisiana' },
+  { name: 'Venice, LA', lat: 29.2758, lon: -89.3531, state: 'Louisiana' },
+  { name: 'Cameron, LA', lat: 29.7968, lon: -93.3268, state: 'Louisiana' },
+  
+  // Alabama
+  { name: 'Mobile Bay, AL', lat: 30.6954, lon: -88.0399, state: 'Alabama' },
+  { name: 'Gulf Shores, AL', lat: 30.2460, lon: -87.7008, state: 'Alabama' },
+  { name: 'Orange Beach, AL', lat: 30.2948, lon: -87.5708, state: 'Alabama' },
+  
+  // Mississippi
+  { name: 'Biloxi, MS', lat: 30.3960, lon: -88.8853, state: 'Mississippi' },
+  { name: 'Gulfport, MS', lat: 30.3674, lon: -89.0928, state: 'Mississippi' },
+  { name: 'Pass Christian, MS', lat: 30.3147, lon: -89.2473, state: 'Mississippi' }
 ]
+
+// Filtered locations for autocomplete
+const filteredLocations = computed(() => {
+  if (!searchQuery.value || searchQuery.value.length < 2) {
+    return popularLocations.slice(0, 8) // Show first 8 popular locations
+  }
+  
+  const query = searchQuery.value.toLowerCase()
+  return popularLocations
+    .filter(location => 
+      location.name.toLowerCase().includes(query) ||
+      location.state.toLowerCase().includes(query)
+    )
+    .slice(0, 12) // Limit to 12 results
+})
 
 const searchLocation = async () => {
   if (!searchQuery.value.trim()) return
