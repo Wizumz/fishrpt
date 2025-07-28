@@ -118,9 +118,9 @@
             <h3 class="text-lg font-semibold text-gray-100">🌤️ Weather Conditions</h3>
           </template>
           
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Weather Data Table -->
-            <div>
+            <div class="lg:col-span-2">
               <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                   <thead>
@@ -158,6 +158,29 @@
                     </tr>
                   </tbody>
                 </table>
+              </div>
+              
+              <!-- Marine Weather Details -->
+              <div class="mt-6 border-t border-gray-600 pt-4">
+                <h4 class="font-semibold text-gray-200 mb-3">🌊 Marine Weather</h4>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Sea State</span>
+                    <span class="font-semibold text-cyan-400">{{ getSeaState() }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Comfort Level</span>
+                    <span class="font-semibold" :class="getComfortColor()">{{ getComfortLevel() }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">UV Index</span>
+                    <span class="font-semibold" :class="getUVColor(reportData.uvIndex)">{{ reportData.uvIndex }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Best Times</span>
+                    <span class="font-semibold text-yellow-400">{{ getBestFishingTimes() }}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -229,7 +252,7 @@
           </div>
           
           <!-- Legend -->
-          <div class="flex flex-wrap justify-center gap-4 text-xs">
+          <div class="flex flex-wrap justify-center gap-4 text-xs mb-4">
             <div class="flex items-center space-x-2">
               <div class="w-4 h-2 bg-cyan-400 rounded"></div>
               <span class="text-gray-300">Tide Height</span>
@@ -245,6 +268,70 @@
             <div class="flex items-center space-x-2">
               <div class="w-4 h-2 bg-orange-400 rounded"></div>
               <span class="text-gray-300">Sunrise/Sunset</span>
+            </div>
+          </div>
+          
+          <!-- Tides & Solunar Data Table -->
+          <div class="border-t border-gray-600 pt-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Tide Data -->
+              <div>
+                <h4 class="font-semibold text-gray-200 mb-3 text-sm">📊 Today's Tide Data</h4>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-xs">
+                    <thead>
+                      <tr class="border-b border-gray-600">
+                        <th class="text-left py-1 text-gray-300">Time</th>
+                        <th class="text-center py-1 text-gray-300">Type</th>
+                        <th class="text-right py-1 text-gray-300">Height (MLLW)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(tide, index) in reportData.tides.slice(0, 4)" :key="index" 
+                          class="border-b border-gray-700">
+                        <td class="py-1 text-gray-300">{{ tide.t }}</td>
+                        <td class="py-1 text-center">
+                          <span :class="tide.type === 'High Tide' ? 'text-cyan-400' : 'text-blue-400'">
+                            {{ tide.type === 'High Tide' ? '⬆️ High' : '⬇️ Low' }}
+                          </span>
+                        </td>
+                        <td class="py-1 text-right text-cyan-400 font-semibold">{{ tide.v }} ft</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="text-xs text-gray-500 mt-2">
+                  * MLLW = Mean Lower Low Water (standard tide reference)
+                </div>
+              </div>
+              
+              <!-- Solunar Data -->
+              <div>
+                <h4 class="font-semibold text-gray-200 mb-3 text-sm">🌙 Today's Solunar Activity</h4>
+                <div class="space-y-2">
+                  <div class="p-2 bg-green-900/30 rounded text-xs">
+                    <div class="font-semibold text-green-400 mb-1">🟢 Major Periods (Peak Activity)</div>
+                    <div class="text-gray-300">
+                      🌅 {{ reportData.solunar.majorTimes[0] }} - Morning Peak<br>
+                      🌇 {{ reportData.solunar.majorTimes[1] }} - Evening Peak
+                    </div>
+                  </div>
+                  <div class="p-2 bg-yellow-900/30 rounded text-xs">
+                    <div class="font-semibold text-yellow-400 mb-1">🟡 Minor Periods (Moderate Activity)</div>
+                    <div class="text-gray-300">
+                      🌙 {{ reportData.solunar.minorTimes[0] }} - Night Activity<br>
+                      ☀️ {{ reportData.solunar.minorTimes[1] }} - Midday Activity
+                    </div>
+                  </div>
+                  <div class="p-2 bg-orange-900/30 rounded text-xs">
+                    <div class="font-semibold text-orange-400 mb-1">🔶 Sun Times</div>
+                    <div class="text-gray-300">
+                      🌅 Sunrise: {{ formatSunTime(reportData.sunData.sunrise) }}<br>
+                      🌇 Sunset: {{ formatSunTime(reportData.sunData.sunset) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </UCard>
@@ -472,16 +559,18 @@
               <div>
                 <h4 class="font-semibold text-gray-200 mb-3 text-sm">Daily Lunar Data</h4>
                 <div class="space-y-1 text-xs">
-                  <div class="grid grid-cols-3 gap-2 p-2 bg-gray-700 rounded font-semibold">
+                  <div class="grid grid-cols-4 gap-2 p-2 bg-gray-700 rounded font-semibold">
                     <div class="text-gray-300">Date</div>
-                    <div class="text-gray-300">Rise/Set</div>
                     <div class="text-gray-300">Phase</div>
+                    <div class="text-gray-300">Rise/Set</div>
+                    <div class="text-gray-300">Light</div>
                   </div>
                   <div v-for="(lunar, index) in reportData.lunarTable" :key="index" 
-                       class="grid grid-cols-3 gap-2 p-2 rounded"
+                       class="grid grid-cols-4 gap-2 p-2 rounded"
                        :class="index % 2 === 0 ? 'bg-gray-750' : 'bg-gray-700'">
                     <div class="text-gray-300">{{ lunar.date }}</div>
-                    <div class="text-gray-300">{{ lunar.moonrise }}/{{ lunar.moonset }}</div>
+                    <div class="text-center text-lg">{{ getMoonPhaseIcon(lunar.illumination) }}</div>
+                    <div class="text-gray-300 text-xs">{{ lunar.moonrise }}/{{ lunar.moonset }}</div>
                     <div class="text-yellow-400">{{ lunar.illumination }}%</div>
                   </div>
                 </div>
@@ -502,53 +591,6 @@
                     <div class="text-xs text-gray-300">
                       {{ reportData.solunar.minorTimes.join(' • ') }}
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </UCard>
-
-          <!-- Marine Weather -->
-          <UCard class="bg-gray-800 border-gray-700">
-            <template #header>
-              <h3 class="text-lg font-semibold text-gray-100">🌤️ Marine Weather</h3>
-            </template>
-            
-            <div class="space-y-3 text-sm">
-              <div class="grid grid-cols-2 gap-3">
-                <div class="flex justify-between">
-                  <span class="text-gray-300">Humidity</span>
-                  <span class="font-semibold text-blue-400">{{ reportData.humidity }}%</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-300">Cloud Cover</span>
-                  <span class="font-semibold text-gray-400">{{ reportData.cloudCover }}%</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-300">UV Index</span>
-                  <span class="font-semibold" :class="getUVColor(reportData.uvIndex)">{{ reportData.uvIndex }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-300">Dew Point</span>
-                  <span class="font-semibold text-indigo-400">{{ Math.round(reportData.dewPoint) }}°F</span>
-                </div>
-              </div>
-              
-              <!-- Marine-specific conditions -->
-              <div class="border-t border-gray-600 pt-3 mt-3">
-                <h4 class="font-semibold text-gray-200 mb-2">Marine Conditions</h4>
-                <div class="space-y-2">
-                  <div class="flex justify-between">
-                    <span class="text-gray-300">Sea State</span>
-                    <span class="font-semibold text-cyan-400">{{ getSeaState() }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-300">Comfort Level</span>
-                    <span class="font-semibold" :class="getComfortColor()">{{ getComfortLevel() }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-300">Best Times</span>
-                    <span class="font-semibold text-yellow-400">{{ getBestFishingTimes() }}</span>
                   </div>
                 </div>
               </div>
@@ -895,6 +937,22 @@ const generateMarineData = (windSpeed, waveHeight) => {
   }
 }
 
+// Utility functions for formatting
+const formatSunTime = (timestamp) => {
+  return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+const getMoonPhaseIcon = (illumination) => {
+  if (illumination < 5) return '🌑'      // New Moon
+  if (illumination < 25) return '🌒'     // Waxing Crescent
+  if (illumination < 35) return '🌓'     // First Quarter
+  if (illumination < 65) return '🌔'     // Waxing Gibbous
+  if (illumination < 75) return '🌕'     // Full Moon
+  if (illumination < 85) return '🌖'     // Waning Gibbous
+  if (illumination < 95) return '🌗'     // Last Quarter
+  return '🌘'                            // Waning Crescent
+}
+
 // Pressure gauge functions
 const getPressureAngle = () => {
   if (!reportData.value) return 0
@@ -1133,7 +1191,7 @@ const createMarineChart = () => {
           data: data.waveHeight.slice(0, 12),
           borderColor: 'rgb(6, 182, 212)',
           backgroundColor: 'rgba(6, 182, 212, 0.1)',
-          yAxisID: 'y',
+          yAxisID: 'y1',
           tension: 0.4,
           fill: false
         }
@@ -1156,9 +1214,17 @@ const createMarineChart = () => {
           type: 'linear',
           display: true,
           position: 'left',
-          title: { display: true, text: 'Wind Speed (mph) / Swell Height (ft)', color: 'rgb(156, 163, 175)' },
+          title: { display: true, text: 'Wind Speed (mph)', color: 'rgb(34, 197, 94)' },
           ticks: { color: 'rgb(156, 163, 175)' },
           grid: { color: 'rgba(75, 85, 99, 0.3)' }
+        },
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          title: { display: true, text: 'Swell Height (ft)', color: 'rgb(6, 182, 212)' },
+          ticks: { color: 'rgb(156, 163, 175)' },
+          grid: { drawOnChartArea: false }
         }
       }
     }
