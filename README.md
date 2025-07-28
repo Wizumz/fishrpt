@@ -2,11 +2,29 @@
 
 An intelligent Progressive Web App (PWA) that provides comprehensive fishing reports with real-time data including weather conditions, tides, marine data, and smart fishing insights.
 
+## 🆕 **ENHANCED DASHBOARD** - Professional Marine Weather Platform
+
+**🚀 [View Live Enhanced Demo](https://wizumz.github.io/fishrpt/)** *(Deploying from feature/enhanced-dashboard branch)*
+
+### ✨ **NEW Features Overview:**
+- 🎨 **Professional Dark Theme** - Easy on the eyes with high contrast
+- 📊 **Comprehensive Dashboard** - 6xl fishing score with 5-tier color coding  
+- 🧭 **Interactive Compasses** - Animated wind & swell direction indicators
+- 📈 **Advanced Charts** - Multi-line marine weather with 30-day temp history
+- 🌊 **Extended Tides** - 12 tide events with time calculations
+- 🌙 **Solunar System** - Major/minor feeding times with moon phases
+- 🌤️ **Complete Weather** - Pressure, humidity, UV, visibility, cloud cover
+- 🎣 **Pro Insights** - Seasonal advice, depth/bait recommendations
+
+*See [ENHANCED-FEATURES.md](./ENHANCED-FEATURES.md) for complete feature breakdown and API integration roadmap.*
+
+---
+
 ## 🌐 Live Demo
 
 **GitHub Pages Demo**: [https://wizumz.github.io/fishrpt/](https://wizumz.github.io/fishrpt/)
 
-*Note: The GitHub Pages version uses static data and mock APIs for demonstration purposes. For full functionality with real-time data, deploy to a platform that supports server-side rendering like Vercel or Netlify.*
+*Note: The GitHub Pages version uses sophisticated mock data and comprehensive marine algorithms for demonstration purposes. For full functionality with real-time data, deploy to a platform that supports server-side rendering like Vercel or Netlify.*
 
 ## ✨ Features
 
@@ -150,135 +168,4 @@ npx serve .output/public
 ## 🗃️ API Data Sources
 
 ### Free APIs (No Key Required)
-- **NOAA Weather API**: `https://api.weather.gov` - Weather forecasts and current conditions
-- **NOAA Tides API**: `https://api.tidesandcurrents.noaa.gov` - Tide predictions and observations
-- **Open-Meteo Weather**: `https://api.open-meteo.com` - Global weather forecasts
-- **Open-Meteo Marine**: `https://marine-api.open-meteo.com` - Marine weather and wave data
-- **Solunar API**: `https://api.solunar.org` - Solunar fishing times
-
-### Optional APIs
-- **OpenAI API**: Enhanced AI insights (requires API key)
-
-## 📱 PWA Installation
-
-### On Mobile (iOS/Android)
-1. Open the app in your mobile browser
-2. Look for "Add to Home Screen" or "Install App" prompt
-3. Follow the installation prompts
-4. App will appear on your home screen like a native app
-
-### On Desktop
-1. Look for the install icon in your browser's address bar
-2. Click to install the PWA
-3. App will be available in your applications folder
-
-## 🎨 Technology Stack
-
-- **Framework**: Nuxt 3 (Vue.js)
-- **UI Library**: Nuxt UI (TailwindCSS)
-- **Charts**: Chart.js with vue-chartjs
-- **PWA**: @vite-pwa/nuxt
-- **AI**: OpenAI API (optional)
-- **Icons**: Heroicons
-- **Styling**: TailwindCSS
-
-## 📂 Project Structure
-
-```
-fishing-report-pwa/
-├── assets/
-│   └── css/
-│       └── main.css           # Global styles
-├── components/
-│   ├── TideChart.vue          # Tide visualization
-│   ├── SolunarChart.vue       # Solunar times and moon phase
-│   └── WeatherChart.vue       # Weather forecast charts
-├── pages/
-│   └── index.vue              # Main application page
-├── server/
-│   └── api/
-│       ├── geocode.post.ts    # Location search endpoint
-│       └── fishing-report.post.ts # Main data aggregation
-├── public/
-│   ├── icon-192x192.png       # PWA icon (small)
-│   ├── icon-512x512.png       # PWA icon (large)
-│   └── favicon.ico            # Browser favicon
-├── nuxt.config.ts             # Nuxt configuration
-├── package.json               # Dependencies
-└── README.md                  # This file
-```
-
-## 🔧 Configuration
-
-### PWA Settings
-The PWA is configured in `nuxt.config.ts`:
-- **Offline Support**: Service worker caches essential files
-- **Install Prompts**: Custom install experience
-- **Theme Colors**: Ocean blue theme
-- **Icons**: Multiple sizes for different devices
-
-### API Endpoints
-- **Geocoding**: `/api/geocode` - Convert location names to coordinates
-- **Fishing Report**: `/api/fishing-report` - Aggregate all fishing data
-
-## 🎣 How It Works
-
-1. **Location Search**: User enters a location (city, zip code, fishing spot)
-2. **Geocoding**: Location is converted to GPS coordinates
-3. **Data Aggregation**: Multiple APIs are called in parallel:
-   - Weather and marine conditions
-   - Tide predictions
-   - Solunar calculations
-4. **Processing**: Data is processed and scored for fishing conditions
-5. **AI Enhancement**: Optional AI analysis provides detailed insights
-6. **Visualization**: Charts and cards display the comprehensive report
-
-## 📊 Fishing Score Algorithm
-
-The app calculates a fishing score (0-100) based on:
-- **Wind Conditions** (20 points): Optimal 5-15 mph
-- **Wave Height** (15 points): Optimal 1-3 feet
-- **Moon Phase** (15 points): New/full moon periods
-- **Water Temperature** (10 points): Species-dependent optimal ranges
-- **Base Score** (40 points): Starting baseline
-
-## 🌙 Solunar Theory
-
-The app implements solunar theory calculations:
-- **Major Times**: 2-hour periods of peak fish activity
-- **Minor Times**: 1-hour periods of good fish activity
-- **Moon Phase**: Current phase and illumination percentage
-- **Best Times**: Dawn/dusk correlation with solunar periods
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-This project is open source and available under the MIT License.
-
-## 🙏 Acknowledgments
-
-- **NOAA**: For providing free weather and tide data
-- **Open-Meteo**: For comprehensive weather API access
-- **Solunar.org**: For solunar calculations
-- **Chart.js**: For beautiful, responsive charts
-- **Nuxt Team**: For the excellent framework
-
-## 📞 Support
-
-For questions or support:
-1. Check existing issues in the repository
-2. Create a new issue with detailed information
-3. Provide steps to reproduce any problems
-
----
-
-**Happy Fishing! 🎣**
-
-*Built with ❤️ for the fishing community*
+- **NOAA Weather API**: `
