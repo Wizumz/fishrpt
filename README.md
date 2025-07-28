@@ -1,6 +1,12 @@
 # 🎣 Fishing Report Pro
 
-An AI-powered Progressive Web App (PWA) that provides comprehensive fishing reports with real-time data including weather conditions, tides, solunar activity, and AI-generated insights.
+An intelligent Progressive Web App (PWA) that provides comprehensive fishing reports with real-time data including weather conditions, tides, marine data, and smart fishing insights.
+
+## 🌐 Live Demo
+
+**GitHub Pages Demo**: [https://wizumz.github.io/fishrpt/](https://wizumz.github.io/fishrpt/)
+
+*Note: The GitHub Pages version uses static data and mock APIs for demonstration purposes. For full functionality with real-time data, deploy to a platform that supports server-side rendering like Vercel or Netlify.*
 
 ## ✨ Features
 
@@ -9,7 +15,7 @@ An AI-powered Progressive Web App (PWA) that provides comprehensive fishing repo
 - **Marine Conditions**: Wave height, direction, water temperature from Open-Meteo Marine API
 - **Tidal Information**: High/low tide predictions from NOAA Tides API
 - **Solunar Activity**: Best fishing times based on moon phases and positions
-- **AI Insights**: Optional OpenAI-powered fishing recommendations
+- **Smart Insights**: Intelligent fishing recommendations based on all conditions
 
 ### 📱 Progressive Web App
 - **Install on Mobile**: Works like a native app on iOS and Android
@@ -19,20 +25,18 @@ An AI-powered Progressive Web App (PWA) that provides comprehensive fishing repo
 
 ### 📈 Beautiful Visualizations
 - **Interactive Charts**: Built with Chart.js for smooth, responsive charts
-- **Tide Charts**: Visual tide height predictions over time
-- **Weather Forecasts**: Multi-parameter weather charts (temperature, wind, humidity, pressure)
-- **Solunar Timeline**: Visual representation of best fishing times
+- **Temperature Forecasts**: 12-hour temperature trend visualization
+- **Tide Information**: Next 4 tide predictions with times and heights
+- **Condition Scoring**: Visual fishing score with detailed breakdown
 
 ### 🎯 Popular Fishing Locations
 Pre-configured with popular US fishing spots:
 - San Francisco Bay, CA
+- Miami Beach, FL
+- Outer Banks, NC
 - Key West, FL
 - Cape Cod, MA
 - Monterey Bay, CA
-- Outer Banks, NC
-- Long Island Sound, NY
-- Tampa Bay, FL
-- Chesapeake Bay, MD
 
 ## 🚀 Getting Started
 
@@ -81,6 +85,66 @@ npm run preview
 
 # Generate static site
 npm run generate
+```
+
+## 🚀 Deployment Options
+
+### 🎯 GitHub Pages (Demo)
+**Current Live Demo**: [https://wizumz.github.io/fishrpt/](https://wizumz.github.io/fishrpt/)
+
+- ✅ **Static hosting** with mock data for demonstration
+- ✅ **Full UI functionality** and interactive features
+- ✅ **PWA installation** capabilities
+- ❌ **Real-time API data** (static demo data only)
+- 💡 **Best for**: Showcasing the app interface and features
+
+### ⚡ Vercel/Netlify (Recommended)
+**For full functionality with real-time data**
+
+- ✅ **Server-side rendering** support
+- ✅ **Real-time API integration** with all data sources
+- ✅ **Environment variables** for API keys
+- ✅ **Automatic deployments** from git
+- ✅ **Edge functions** for optimal performance
+- 💡 **Best for**: Production use with live data
+
+**Deploy to Vercel:**
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel
+
+# Set environment variables in Vercel dashboard
+OPENAI_API_KEY=your_api_key_here
+```
+
+**Deploy to Netlify:**
+```bash
+# Build the project
+npm run build
+
+# Deploy build folder to Netlify
+# Or connect your GitHub repo in Netlify dashboard
+```
+
+### 🐳 Docker Deployment
+```bash
+# Build Docker image
+docker build -t fishing-report-pwa .
+
+# Run container
+docker run -p 3000:3000 -e OPENAI_API_KEY=your_key fishing-report-pwa
+```
+
+### 🏠 Self-Hosted
+```bash
+# Generate static files
+npm run generate
+
+# Serve with any static host
+npx serve .output/public
 ```
 
 ## 🗃️ API Data Sources
