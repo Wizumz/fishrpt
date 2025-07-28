@@ -111,6 +111,145 @@
         </UCard>
       </div>
 
+      <!-- Weather Conditions Table -->
+      <div class="mb-6">
+        <UCard class="bg-gray-800 border-gray-700">
+          <template #header>
+            <h3 class="text-lg font-semibold text-gray-100">🌤️ Weather Conditions</h3>
+          </template>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Weather Data Table -->
+            <div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-gray-600">
+                      <th class="text-left py-2 text-gray-300">Metric</th>
+                      <th class="text-right py-2 text-gray-300">Current</th>
+                      <th class="text-right py-2 text-gray-300">Min/Max</th>
+                    </tr>
+                  </thead>
+                  <tbody class="space-y-1">
+                    <tr class="border-b border-gray-700">
+                      <td class="py-2 text-gray-300">💨 Wind</td>
+                      <td class="py-2 text-right text-green-400 font-semibold">{{ Math.round(reportData.windSpeed) }} mph {{ getWindDirection(reportData.windDirection) }}</td>
+                      <td class="py-2 text-right text-gray-400">{{ reportData.weatherTable.wind.min }}-{{ reportData.weatherTable.wind.max }} mph</td>
+                    </tr>
+                    <tr class="border-b border-gray-700">
+                      <td class="py-2 text-gray-300">🌡️ Air Temperature</td>
+                      <td class="py-2 text-right text-orange-400 font-semibold">{{ Math.round(reportData.airTemp) }}°F</td>
+                      <td class="py-2 text-right text-gray-400">{{ reportData.weatherTable.airTemp.min }}°F / {{ reportData.weatherTable.airTemp.max }}°F</td>
+                    </tr>
+                    <tr class="border-b border-gray-700">
+                      <td class="py-2 text-gray-300">💧 Humidity</td>
+                      <td class="py-2 text-right text-blue-400 font-semibold">{{ reportData.humidity }}%</td>
+                      <td class="py-2 text-right text-gray-400">Dew Point: {{ Math.round(reportData.dewPoint) }}°F</td>
+                    </tr>
+                    <tr class="border-b border-gray-700">
+                      <td class="py-2 text-gray-300">👁️ Visibility</td>
+                      <td class="py-2 text-right text-cyan-400 font-semibold">{{ reportData.visibility }} mi</td>
+                      <td class="py-2 text-right text-gray-400">{{ reportData.weatherTable.visibility.condition }}</td>
+                    </tr>
+                    <tr>
+                      <td class="py-2 text-gray-300">☁️ Cloud Cover</td>
+                      <td class="py-2 text-right text-gray-400 font-semibold">{{ reportData.cloudCover }}%</td>
+                      <td class="py-2 text-right text-gray-400">{{ getCloudCondition(reportData.cloudCover) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Barometric Pressure Gauge -->
+            <div class="flex flex-col items-center justify-center">
+              <h4 class="text-md font-semibold text-gray-200 mb-4">Barometric Pressure</h4>
+              <div class="relative w-48 h-24 mb-4">
+                <!-- Gauge background -->
+                <svg class="w-full h-full" viewBox="0 0 200 100">
+                  <!-- Gauge arc -->
+                  <path d="M 20 80 A 80 80 0 0 1 180 80" 
+                        stroke="rgb(75, 85, 99)" 
+                        stroke-width="8" 
+                        fill="none"/>
+                  
+                  <!-- Pressure marks -->
+                  <text x="20" y="95" class="text-xs fill-gray-400" text-anchor="middle">29.0</text>
+                  <text x="100" y="25" class="text-xs fill-gray-400" text-anchor="middle">30.0</text>
+                  <text x="180" y="95" class="text-xs fill-gray-400" text-anchor="middle">31.0</text>
+                  
+                  <!-- Pressure zones -->
+                  <path d="M 20 80 A 80 80 0 0 1 100 20" 
+                        stroke="rgb(239, 68, 68)" 
+                        stroke-width="4" 
+                        fill="none" 
+                        opacity="0.6"/>
+                  <path d="M 100 20 A 80 80 0 0 1 180 80" 
+                        stroke="rgb(34, 197, 94)" 
+                        stroke-width="4" 
+                        fill="none" 
+                        opacity="0.6"/>
+                  
+                  <!-- Needle -->
+                  <line :x1="100" :y1="80" 
+                        :x2="100 + 60 * Math.cos(getPressureAngle())" 
+                        :y2="80 - 60 * Math.sin(getPressureAngle())"
+                        stroke="rgb(59, 130, 246)" 
+                        stroke-width="3" 
+                        stroke-linecap="round"/>
+                  
+                  <!-- Center dot -->
+                  <circle cx="100" cy="80" r="4" fill="rgb(59, 130, 246)"/>
+                </svg>
+              </div>
+              
+              <div class="text-center">
+                <div class="text-2xl font-bold text-purple-400 mb-1">{{ reportData.pressure.toFixed(2) }} inHg</div>
+                <div class="text-sm font-semibold" :class="getPressureConditionColor()">
+                  {{ getPressureCondition() }}
+                </div>
+                <div class="text-xs text-gray-400 mt-1">
+                  {{ getPressureTrend() }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </UCard>
+      </div>
+
+      <!-- Tides and Solunar Overlay Chart -->
+      <div class="mb-6">
+        <UCard class="bg-gray-800 border-gray-700">
+          <template #header>
+            <h3 class="text-lg font-semibold text-gray-100">🌊 Tides & Solunar Activity</h3>
+          </template>
+          
+          <div class="h-64 mb-4">
+            <canvas ref="tidesRenderChart"></canvas>
+          </div>
+          
+          <!-- Legend -->
+          <div class="flex flex-wrap justify-center gap-4 text-xs">
+            <div class="flex items-center space-x-2">
+              <div class="w-4 h-2 bg-cyan-400 rounded"></div>
+              <span class="text-gray-300">Tide Height</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <div class="w-4 h-2 bg-green-500 rounded opacity-60"></div>
+              <span class="text-gray-300">Major Solunar</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <div class="w-4 h-2 bg-yellow-500 rounded opacity-60"></div>
+              <span class="text-gray-300">Minor Solunar</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <div class="w-4 h-2 bg-orange-400 rounded"></div>
+              <span class="text-gray-300">Sunrise/Sunset</span>
+            </div>
+          </div>
+        </UCard>
+      </div>
+
       <!-- Main Content Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Left Column - Charts -->
@@ -174,6 +313,36 @@
                   {{ reportData.historicalTemp.trend > 0 ? '+' : '' }}{{ reportData.historicalTemp.trend.toFixed(1) }}°F
                 </div>
                 <div class="text-gray-400">7-Day Change</div>
+              </div>
+            </div>
+          </UCard>
+
+          <!-- Tidal Coefficient Chart -->
+          <UCard class="bg-gray-800 border-gray-700">
+            <template #header>
+              <h3 class="text-lg font-semibold text-gray-100">📊 Tidal Coefficient</h3>
+            </template>
+            
+            <div class="h-48">
+              <canvas ref="tidalCoefficientChart"></canvas>
+            </div>
+            
+            <div class="mt-4 p-3 bg-gray-700 rounded-lg">
+              <div class="grid grid-cols-3 gap-4 text-center text-sm">
+                <div>
+                  <div class="text-lg font-bold text-cyan-400">{{ reportData.tidalCoefficient.current }}</div>
+                  <div class="text-gray-400">Today</div>
+                </div>
+                <div>
+                  <div class="text-lg font-bold" :class="getTidalCoefficientColor(reportData.tidalCoefficient.current)">
+                    {{ getTidalCoefficientLevel(reportData.tidalCoefficient.current) }}
+                  </div>
+                  <div class="text-gray-400">Tide Strength</div>
+                </div>
+                <div>
+                  <div class="text-lg font-bold text-yellow-400">{{ reportData.tidalCoefficient.nextSpring }}</div>
+                  <div class="text-gray-400">Next Spring Tide</div>
+                </div>
               </div>
             </div>
           </UCard>
@@ -339,7 +508,7 @@
             </div>
           </UCard>
 
-          <!-- Weather Details -->
+          <!-- Marine Weather -->
           <UCard class="bg-gray-800 border-gray-700">
             <template #header>
               <h3 class="text-lg font-semibold text-gray-100">🌤️ Marine Weather</h3>
@@ -387,6 +556,47 @@
           </UCard>
         </div>
       </div>
+
+      <!-- Historical Summary Table -->
+      <div class="mt-6">
+        <UCard class="bg-gray-800 border-gray-700">
+          <template #header>
+            <h3 class="text-lg font-semibold text-gray-100">📊 Historical Summary (Last 7 Days)</h3>
+          </template>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-600">
+                  <th class="text-left py-3 text-gray-300">Date</th>
+                  <th class="text-center py-3 text-gray-300">Water Temp</th>
+                  <th class="text-center py-3 text-gray-300">Air Temp</th>
+                  <th class="text-center py-3 text-gray-300">Wind</th>
+                  <th class="text-center py-3 text-gray-300">Pressure</th>
+                  <th class="text-center py-3 text-gray-300">Tide Range</th>
+                  <th class="text-center py-3 text-gray-300">Solunar</th>
+                  <th class="text-center py-3 text-gray-300">Conditions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(day, index) in reportData.historicalSummary" :key="index" 
+                    class="border-b border-gray-700 hover:bg-gray-750">
+                  <td class="py-3 text-gray-300">{{ day.date }}</td>
+                  <td class="py-3 text-center text-blue-400">{{ day.waterTemp }}°F</td>
+                  <td class="py-3 text-center text-orange-400">{{ day.airTemp }}°F</td>
+                  <td class="py-3 text-center text-green-400">{{ day.wind }}</td>
+                  <td class="py-3 text-center text-purple-400">{{ day.pressure }}"</td>
+                  <td class="py-3 text-center text-cyan-400">{{ day.tideRange }} ft</td>
+                  <td class="py-3 text-center text-yellow-400">{{ day.solunar }}%</td>
+                  <td class="py-3 text-center">
+                    <span class="text-xs px-2 py-1 rounded" :class="day.conditionColor">{{ day.condition }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </UCard>
+      </div>
     </div>
   </div>
 </template>
@@ -405,6 +615,8 @@ const reportData = ref(null)
 const marineChart = ref(null)
 const tempChart = ref(null)
 const tideChart = ref(null)
+const tidesRenderChart = ref(null)
+const tidalCoefficientChart = ref(null)
 
 // Popular fishing locations with coordinates
 const popularLocations = [
@@ -458,6 +670,8 @@ const getMarineReport = async (lat, lon, locationName) => {
       createMarineChart()
       createTempChart()
       createTideChart()
+      createTidesRenderChart()
+      createTidalCoefficientChart()
     })
   } catch (err) {
     error.value = 'Failed to generate marine report. Please try again.'
@@ -491,6 +705,7 @@ const generateMarineReport = async (lat, lon, locationName) => {
   const waveHeight = isCoastal ? 1.5 + Math.random() * 3 : 0.5 + Math.random()
   const waveDirection = Math.round(Math.random() * 360)
   const swellPeriod = 8 + Math.random() * 8
+  const pressure = 29.8 + Math.random() * 0.6
   
   return {
     location: locationName,
@@ -504,18 +719,106 @@ const generateMarineReport = async (lat, lon, locationName) => {
     swellPeriod: Math.round(swellPeriod),
     moonPhase: getCurrentMoonPhase(),
     moonIllumination: Math.round(50 + Math.random() * 50),
-    pressure: 29.8 + Math.random() * 0.6,
+    pressure: pressure,
+    pressureTrend: generatePressureTrend(),
     humidity: Math.round(60 + Math.random() * 30),
     cloudCover: Math.round(Math.random() * 100),
     uvIndex: Math.round(Math.random() * 11),
     visibility: Math.round(5 + Math.random() * 15),
     dewPoint: airTemp - 5 - Math.random() * 10,
+    weatherTable: generateWeatherTable(windSpeed, airTemp),
     tides: generateAdvancedTideData(),
     solunar: generateSolunarData(),
     lunarTable: generateLunarTable(),
+    tidalCoefficient: generateTidalCoefficient(),
     historicalTemp: generateHistoricalTempData(waterTemp),
-    marineData: generateMarineData(windSpeed, waveHeight)
+    historicalSummary: generateHistoricalSummary(),
+    marineData: generateMarineData(windSpeed, waveHeight),
+    sunData: generateSunData()
   }
+}
+
+const generateWeatherTable = (windSpeed, airTemp) => {
+  return {
+    wind: {
+      min: Math.max(0, Math.round(windSpeed - 5)),
+      max: Math.round(windSpeed + 8)
+    },
+    airTemp: {
+      min: Math.round(airTemp - 5),
+      max: Math.round(airTemp + 8)
+    },
+    visibility: {
+      condition: Math.random() > 0.7 ? 'Excellent' : Math.random() > 0.4 ? 'Good' : 'Fair'
+    }
+  }
+}
+
+const generatePressureTrend = () => {
+  const trends = ['Rising Rapidly', 'Rising Slowly', 'Steady', 'Falling Slowly', 'Falling Rapidly']
+  return trends[Math.floor(Math.random() * trends.length)]
+}
+
+const generateTidalCoefficient = () => {
+  const current = Math.round(20 + Math.random() * 100)
+  return {
+    current: current,
+    nextSpring: Math.round(85 + Math.random() * 15),
+    daily: Array.from({ length: 7 }, (_, i) => 
+      Math.round(current + Math.sin(i * 0.9) * 30 + Math.random() * 10)
+    )
+  }
+}
+
+const generateSunData = () => {
+  const now = new Date()
+  const sunrise = new Date(now)
+  sunrise.setHours(6, 30 + Math.random() * 60, 0, 0)
+  
+  const sunset = new Date(now)
+  sunset.setHours(18, 30 + Math.random() * 60, 0, 0)
+  
+  return {
+    sunrise: sunrise.getTime(),
+    sunset: sunset.getTime()
+  }
+}
+
+const generateHistoricalSummary = () => {
+  const summary = []
+  const today = new Date()
+  
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000)
+    const waterTemp = 68 + Math.sin(i * 0.3) * 5 + Math.random() * 4
+    const airTemp = waterTemp + Math.random() * 8 - 4
+    const windSpeed = 8 + Math.random() * 12
+    const pressure = 29.8 + Math.random() * 0.6
+    const tideRange = 3 + Math.random() * 4
+    const solunar = Math.round(40 + Math.random() * 60)
+    
+    const condition = solunar > 80 ? 'Excellent' : solunar > 60 ? 'Good' : solunar > 40 ? 'Fair' : 'Poor'
+    const conditionColor = {
+      'Excellent': 'bg-green-900 text-green-400',
+      'Good': 'bg-blue-900 text-blue-400', 
+      'Fair': 'bg-yellow-900 text-yellow-400',
+      'Poor': 'bg-red-900 text-red-400'
+    }[condition]
+    
+    summary.push({
+      date: date.toLocaleDateString([], { month: 'short', day: 'numeric' }),
+      waterTemp: Math.round(waterTemp),
+      airTemp: Math.round(airTemp),
+      wind: `${Math.round(windSpeed)} mph`,
+      pressure: pressure.toFixed(2),
+      tideRange: tideRange.toFixed(1),
+      solunar: solunar,
+      condition: condition,
+      conditionColor: conditionColor
+    })
+  }
+  
+  return summary
 }
 
 const generateAdvancedTideData = () => {
@@ -590,6 +893,67 @@ const generateMarineData = (windSpeed, waveHeight) => {
       new Date(Date.now() + i * 60 * 60 * 1000).toISOString()
     )
   }
+}
+
+// Pressure gauge functions
+const getPressureAngle = () => {
+  if (!reportData.value) return 0
+  const pressure = reportData.value.pressure
+  // Convert pressure (29.0-31.0) to angle (0-180 degrees)
+  const normalizedPressure = (pressure - 29.0) / 2.0
+  return normalizedPressure * Math.PI // 0 to PI radians
+}
+
+const getPressureCondition = () => {
+  if (!reportData.value) return 'Good'
+  const pressure = reportData.value.pressure
+  const trend = reportData.value.pressureTrend
+  
+  if (trend.includes('Rapidly')) {
+    return pressure > 30.1 ? 'VERY GOOD' : 'GOOD'
+  } else if (pressure > 30.2) {
+    return 'VERY GOOD'
+  } else if (pressure > 29.8) {
+    return 'GOOD'
+  } else {
+    return 'POOR'
+  }
+}
+
+const getPressureConditionColor = () => {
+  const condition = getPressureCondition()
+  if (condition === 'VERY GOOD') return 'text-green-400'
+  if (condition === 'GOOD') return 'text-blue-400'
+  return 'text-red-400'
+}
+
+const getPressureTrend = () => {
+  if (!reportData.value) return ''
+  return reportData.value.pressureTrend
+}
+
+// Cloud condition function
+const getCloudCondition = (cloudCover) => {
+  if (cloudCover < 25) return 'Clear'
+  if (cloudCover < 50) return 'Partly Cloudy'
+  if (cloudCover < 75) return 'Mostly Cloudy'
+  return 'Overcast'
+}
+
+// Tidal coefficient functions
+const getTidalCoefficientColor = (coefficient) => {
+  if (coefficient > 80) return 'text-green-400'
+  if (coefficient > 60) return 'text-blue-400'
+  if (coefficient > 40) return 'text-yellow-400'
+  return 'text-red-400'
+}
+
+const getTidalCoefficientLevel = (coefficient) => {
+  if (coefficient > 95) return 'Spring Tide'
+  if (coefficient > 80) return 'Strong'
+  if (coefficient > 60) return 'Moderate'
+  if (coefficient > 40) return 'Weak'
+  return 'Neap Tide'
 }
 
 // Analysis functions
@@ -895,6 +1259,193 @@ const createTideChart = () => {
         y: {
           title: { display: true, text: 'Height (ft)', color: 'rgb(156, 163, 175)' },
           ticks: { color: 'rgb(156, 163, 175)', font: { size: 10 } },
+          grid: { color: 'rgba(75, 85, 99, 0.3)' }
+        }
+      }
+    }
+  })
+}
+
+const createTidesRenderChart = () => {
+  if (!tidesRenderChart.value || !reportData.value) return
+  
+  const ctx = tidesRenderChart.value.getContext('2d')
+  const data = reportData.value.marineData
+  
+  // Create time labels for 24 hours
+  const labels = Array.from({ length: 24 }, (_, i) => {
+    const hour = new Date(Date.now() + i * 60 * 60 * 1000).getHours()
+    return `${hour}:00`
+  })
+  
+  // Create background datasets for solunar periods and sunrise/sunset
+  const backgroundHeight = Math.max(...data.tideHeights) + 1
+  
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        // Major Solunar Period 1 (6:30-8:30)
+        {
+          label: 'Major Solunar 1',
+          data: labels.map((_, i) => (i >= 6 && i <= 8) ? backgroundHeight : null),
+          backgroundColor: 'rgba(34, 197, 94, 0.3)',
+          borderColor: 'transparent',
+          pointRadius: 0,
+          fill: 'origin',
+          order: 3
+        },
+        // Major Solunar Period 2 (18:45-20:45)
+        {
+          label: 'Major Solunar 2', 
+          data: labels.map((_, i) => (i >= 18 && i <= 20) ? backgroundHeight : null),
+          backgroundColor: 'rgba(34, 197, 94, 0.3)',
+          borderColor: 'transparent',
+          pointRadius: 0,
+          fill: 'origin',
+          order: 3
+        },
+        // Minor Solunar Period 1 (0:15-1:15)
+        {
+          label: 'Minor Solunar 1',
+          data: labels.map((_, i) => (i >= 0 && i <= 1) ? backgroundHeight : null),
+          backgroundColor: 'rgba(234, 179, 8, 0.3)',
+          borderColor: 'transparent',
+          pointRadius: 0,
+          fill: 'origin',
+          order: 3
+        },
+        // Minor Solunar Period 2 (12:30-13:30)
+        {
+          label: 'Minor Solunar 2',
+          data: labels.map((_, i) => (i >= 12 && i <= 13) ? backgroundHeight : null),
+          backgroundColor: 'rgba(234, 179, 8, 0.3)',
+          borderColor: 'transparent',
+          pointRadius: 0,
+          fill: 'origin',
+          order: 3
+        },
+        // Sunrise marker (6:30)
+        {
+          label: 'Sunrise',
+          data: labels.map((_, i) => i === 6 ? backgroundHeight : null),
+          backgroundColor: 'rgb(251, 146, 60)',
+          borderColor: 'rgb(251, 146, 60)',
+          pointRadius: 6,
+          pointStyle: 'triangle',
+          showLine: false,
+          order: 1
+        },
+        // Sunset marker (18:45)
+        {
+          label: 'Sunset',
+          data: labels.map((_, i) => i === 18 ? backgroundHeight : null),
+          backgroundColor: 'rgb(251, 146, 60)',
+          borderColor: 'rgb(251, 146, 60)',
+          pointRadius: 6,
+          pointStyle: 'triangle',
+          showLine: false,
+          order: 1
+        },
+        // Main tide data
+        {
+          label: 'Tide Height',
+          data: data.tideHeights,
+          borderColor: 'rgb(6, 182, 212)',
+          backgroundColor: 'rgba(6, 182, 212, 0.2)',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 3,
+          order: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: { 
+          display: false 
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              if (context.datasetIndex === 6) { // Main tide data
+                return `Tide: ${context.parsed.y.toFixed(1)} ft`
+              }
+              return null
+            },
+            filter: function(tooltipItem) {
+              return tooltipItem.datasetIndex === 6 // Only show tooltip for tide data
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: 'rgb(156, 163, 175)' },
+          grid: { color: 'rgba(75, 85, 99, 0.3)' }
+        },
+        y: {
+          title: { display: true, text: 'Tide Height (ft)', color: 'rgb(156, 163, 175)' },
+          ticks: { color: 'rgb(156, 163, 175)' },
+          grid: { color: 'rgba(75, 85, 99, 0.3)' },
+          max: backgroundHeight
+        }
+      }
+    }
+  })
+}
+
+const createTidalCoefficientChart = () => {
+  if (!tidalCoefficientChart.value || !reportData.value) return
+  
+  const ctx = tidalCoefficientChart.value.getContext('2d')
+  const data = reportData.value.tidalCoefficient
+  
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: Array.from({ length: 7 }, (_, i) => {
+        const date = new Date()
+        date.setDate(date.getDate() + i)
+        return date.toLocaleDateString([], { weekday: 'short' })
+      }),
+      datasets: [
+        {
+          label: 'Tidal Coefficient',
+          data: data.daily,
+          borderColor: 'rgb(6, 182, 212)',
+          backgroundColor: 'rgba(6, 182, 212, 0.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: 'rgb(6, 182, 212)',
+          pointBorderColor: 'rgb(6, 182, 212)',
+          pointRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: { color: 'rgb(156, 163, 175)' },
+          grid: { color: 'rgba(75, 85, 99, 0.3)' }
+        },
+        y: {
+          min: 0,
+          max: 120,
+          title: { display: true, text: 'Coefficient', color: 'rgb(156, 163, 175)' },
+          ticks: { color: 'rgb(156, 163, 175)' },
           grid: { color: 'rgba(75, 85, 99, 0.3)' }
         }
       }
