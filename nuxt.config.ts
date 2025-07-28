@@ -5,9 +5,6 @@ export default defineNuxtConfig({
   nitro: {
     prerender: {
       routes: ['/']
-    },
-    experimental: {
-      wasm: true
     }
   },
   
@@ -71,7 +68,6 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
-  // Enable static generation
-  ssr: false, // Client-side rendering for GitHub Pages
-  target: 'static'
+  // Enable static generation (ssr: false is for client-side rendering)
+  ssr: false
 })
