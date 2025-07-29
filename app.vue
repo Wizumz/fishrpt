@@ -1,57 +1,38 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
+  <div id="app" class="terminal-app">
+    <TerminalHeader />
     <NuxtPage />
+    <TerminalFooter />
   </div>
 </template>
 
-<script setup>
-import { onMounted } from 'vue'
-
-// SEO and meta tags
+<script setup lang="ts">
+// Set up the app with metadata and head configuration
 useHead({
-  title: 'Fishing Report Pro',
+  title: 'Marine Weather Forecast - NOAA Data Terminal',
   meta: [
-    {
-      name: 'description',
-      content: 'AI-powered fishing reports with real-time weather, tides, solunar data, and fishing predictions.'
-    },
-    {
-      name: 'keywords',
-      content: 'fishing report, tides, weather, solunar, fishing forecast, marine weather'
-    },
-    {
-      name: 'viewport',
-      content: 'width=device-width, initial-scale=1, user-scalable=no'
-    },
-    {
-      name: 'theme-color',
-      content: '#0ea5e9'
-    }
+    { name: 'description', content: 'Professional marine weather forecasting with NOAA data integration, tidal charts, and AI-powered forecast summaries' },
+    { name: 'keywords', content: 'marine weather, NOAA, tides, marine forecast, weather terminal' },
+    { name: 'author', content: 'Marine Weather Terminal' }
   ],
   link: [
-    {
-      rel: 'icon',
-      type: 'image/x-icon',
-      href: '/favicon.ico'
-    }
+    { rel: 'canonical', href: 'https://example.com/fishrpt/' }
   ]
 })
 
-// PWA install prompt handling
-onMounted(() => {
-  let deferredPrompt
-  
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault()
-    deferredPrompt = e
-    
-    // Show custom install button or banner
-    console.log('PWA install prompt available')
-  })
-  
-  window.addEventListener('appinstalled', () => {
-    console.log('PWA was installed')
-    deferredPrompt = null
-  })
+// Set up color scheme for dark theme
+useColorMode({
+  preference: 'dark',
+  fallback: 'dark'
 })
 </script>
+
+<style scoped>
+.terminal-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+}
+</style>
