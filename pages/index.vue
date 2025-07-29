@@ -1,457 +1,581 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
-    <!-- Hero Section -->
-    <section class="relative py-12 px-4">
-      <div class="container mx-auto text-center">
-        <div class="mb-8">
-          <h1 class="text-4xl md:text-6xl font-bold text-blue-900 mb-4">
-            🎣 Fishing Report Pro
-            <span class="text-2xl md:text-3xl bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent font-normal">
+  <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 shadow-sm">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+          <div class="flex items-center">
+            <h1 class="text-2xl font-bold text-gray-900">
+              🎣 Fishing Report Pro
+            </h1>
+            <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded">
               v2.0
             </span>
-          </h1>
-          <p class="text-xl md:text-2xl text-blue-700 mb-2">
-            Northeast Striped Bass Intelligence Platform
+          </div>
+          <div class="text-sm text-gray-500">
+            {{ currentTime }}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Location Selection -->
+      <div v-if="!selectedLocation" class="space-y-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold text-gray-900 mb-4">
+            Select Your Fishing Location
+          </h2>
+          <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+            Get real-time fishing conditions, weather, tides, and solunar data for your specific location
           </p>
-          <p class="text-gray-600 max-w-2xl mx-auto">
-            Advanced AI-powered fishing predictions combining real-time NOAA weather, 
-            tidal data, and solunar analysis specifically optimized for Striped Bass fishing 
-            from Cape Cod to Chesapeake Bay.
-          </p>
         </div>
 
-        <!-- Key Features -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
-          <div class="bg-white rounded-lg p-6 shadow-lg">
-            <div class="text-3xl mb-3">📊</div>
-            <h3 class="font-bold text-blue-900 mb-2">Success Matrix</h3>
-            <p class="text-sm text-gray-600">
-              7-day probability heatmap across 8 prime Striped Bass locations
-            </p>
+        <!-- Search Bar -->
+        <div class="max-w-md mx-auto">
+          <div class="relative">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search for a fishing location..."
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+            />
+            <div class="absolute right-3 top-3 text-gray-400">
+              🔍
+            </div>
           </div>
-          <div class="bg-white rounded-lg p-6 shadow-lg">
-            <div class="text-3xl mb-3">🗺️</div>
-            <h3 class="font-bold text-blue-900 mb-2">Interactive Map</h3>
-            <p class="text-sm text-gray-600">
-              Real-time conditions with Windy-style visualizations
-            </p>
-          </div>
-          <div class="bg-white rounded-lg p-6 shadow-lg">
-            <div class="text-3xl mb-3">🎯</div>
-            <h3 class="font-bold text-blue-900 mb-2">Smart Scoring</h3>
-            <p class="text-sm text-gray-600">
-              AI algorithm combining 5 key factors for Striped Bass success
-            </p>
+          
+          <!-- Search Results -->
+          <div v-if="searchQuery && searchResults.length > 0" class="mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+            <div
+              v-for="location in searchResults"
+              :key="location.id"
+              @click="selectLocation(location.id)"
+              class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+            >
+              <div class="font-medium text-gray-900">{{ location.name }}</div>
+              <div class="text-sm text-gray-500">{{ location.type }} • {{ location.description }}</div>
+            </div>
           </div>
         </div>
 
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 max-w-2xl mx-auto">
-          <div class="text-center">
-            <div class="text-2xl font-bold text-blue-600">8</div>
-            <div class="text-xs text-gray-600">Prime Locations</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-bold text-green-600">{{ currentBestScore }}%</div>
-            <div class="text-xs text-gray-600">Best Current Score</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-bold text-blue-600">{{ activeAlerts }}</div>
-            <div class="text-xs text-gray-600">Weather Alerts</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-bold text-purple-600">Live</div>
-            <div class="text-xs text-gray-600">Data Updates</div>
+        <!-- Popular Regions -->
+        <div class="mt-12">
+          <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">
+            Browse by Region
+          </h3>
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              v-for="region in regions"
+              :key="region.id"
+              @click="selectedRegion = region.id"
+              class="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+            >
+              <h4 class="text-lg font-semibold text-gray-900 mb-2">
+                {{ region.name }}
+              </h4>
+              <p class="text-gray-600 mb-4">
+                {{ region.description }}
+              </p>
+              <div class="text-sm text-blue-600 font-medium">
+                {{ region.locations.length }} locations →
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- Main Content -->
-    <div class="container mx-auto px-4 pb-12">
-      <!-- Navigation Tabs -->
-      <div class="mb-8">
-        <div class="flex flex-wrap justify-center gap-2">
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            @click="activeTab = tab.id"
-            :class="[
-              'px-6 py-3 rounded-lg font-semibold transition-all',
-              activeTab === tab.id
-                ? 'bg-blue-600 text-white shadow-lg'
-                : 'bg-white text-blue-600 hover:bg-blue-50'
-            ]"
-          >
-            {{ tab.icon }} {{ tab.label }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Tab Content -->
-      <div class="tab-content">
-        <!-- Success Matrix Tab -->
-        <div v-if="activeTab === 'matrix'" class="tab-panel">
-          <FishingMatrix />
-        </div>
-
-        <!-- Interactive Map Tab -->
-        <div v-if="activeTab === 'map'" class="tab-panel">
-          <StripedBassMap />
-        </div>
-
-        <!-- Current Conditions Tab -->
-        <div v-if="activeTab === 'conditions'" class="tab-panel">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Best Opportunities Today -->
-            <UCard>
-              <template #header>
-                <h3 class="text-xl font-bold text-blue-900">
-                  🏆 Best Opportunities Today
-                </h3>
-              </template>
-              
-              <div class="space-y-4">
-                <div
-                  v-for="opportunity in todaysBest"
-                  :key="opportunity.id"
-                  class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <h4 class="font-semibold text-blue-900">{{ opportunity.name }}</h4>
-                    <p class="text-sm text-gray-600">{{ opportunity.state }} • {{ opportunity.timeWindow }}</p>
-                    <p class="text-xs text-gray-500">{{ opportunity.reason }}</p>
+        <!-- Regional Locations -->
+        <div v-if="selectedRegion && regionLocations.length > 0" class="mt-8">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-bold text-gray-900">
+              {{ regions.find(r => r.id === selectedRegion)?.name }} Locations
+            </h3>
+            <button
+              @click="selectedRegion = null"
+              class="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              ← Back to regions
+            </button>
+          </div>
+          
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div
+              v-for="location in regionLocations"
+              :key="location.id"
+              @click="selectLocation(location.id)"
+              class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-900">{{ location.name }}</h4>
+                  <p class="text-sm text-gray-600 mt-1">{{ location.description }}</p>
+                  <div class="flex items-center mt-2 text-xs text-gray-500">
+                    <span class="bg-gray-100 px-2 py-1 rounded">{{ location.type }}</span>
+                    <span class="ml-2">{{ location.state }}</span>
                   </div>
-                  <div class="text-right">
-                    <div class="text-2xl font-bold" :class="getScoreColor(opportunity.score)">
-                      {{ opportunity.score }}%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Location Dashboard -->
+      <div v-else class="space-y-8">
+        <!-- Location Header -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div class="flex items-center mb-2">
+                <button
+                  @click="clearLocation"
+                  class="text-blue-600 hover:text-blue-800 mr-4"
+                >
+                  ← Back
+                </button>
+                <h2 class="text-2xl font-bold text-gray-900">
+                  {{ selectedLocation.name }}
+                </h2>
+              </div>
+              <p class="text-gray-600">
+                {{ selectedLocation.description }} • {{ selectedLocation.type }}
+              </p>
+              <div class="flex items-center mt-2 text-sm text-gray-500">
+                <span>📍 {{ selectedLocation.lat.toFixed(4) }}, {{ selectedLocation.lng.toFixed(4) }}</span>
+                <span class="ml-4">🗺️ {{ selectedLocation.state }}</span>
+              </div>
+            </div>
+            <div class="mt-4 sm:mt-0">
+              <div class="text-right">
+                <div class="text-2xl font-bold text-green-600">
+                  {{ fishingScore }}%
+                </div>
+                <div class="text-sm text-gray-600">Fishing Score</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current Conditions -->
+        <div class="grid lg:grid-cols-3 gap-6">
+          <!-- Weather -->
+          <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              🌤️ Weather Conditions
+            </h3>
+            <div v-if="weatherData" class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Temperature</span>
+                <span class="font-medium">{{ weatherData.temperature }}°F</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Wind</span>
+                <span class="font-medium">{{ weatherData.windSpeed }} mph {{ weatherData.windDirection }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Pressure</span>
+                <span class="font-medium">{{ weatherData.pressure }} mb</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Conditions</span>
+                <span class="font-medium">{{ weatherData.conditions }}</span>
+              </div>
+            </div>
+            <div v-else class="text-gray-500">Loading weather data...</div>
+          </div>
+
+          <!-- Tides -->
+          <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              🌊 Tide Information
+            </h3>
+            <div v-if="tideData" class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Current Tide</span>
+                <span class="font-medium">{{ tideData.currentTide }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Next High</span>
+                <span class="font-medium">{{ tideData.nextHigh }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Next Low</span>
+                <span class="font-medium">{{ tideData.nextLow }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Tide Height</span>
+                <span class="font-medium">{{ tideData.height }} ft</span>
+              </div>
+            </div>
+            <div v-else class="text-gray-500">Loading tide data...</div>
+          </div>
+
+          <!-- Solunar -->
+          <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              🌙 Solunar Times
+            </h3>
+            <div v-if="solunarData" class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Major Period 1</span>
+                <span class="font-medium">{{ solunarData.major1 }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Minor Period 1</span>
+                <span class="font-medium">{{ solunarData.minor1 }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Major Period 2</span>
+                <span class="font-medium">{{ solunarData.major2 }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Minor Period 2</span>
+                <span class="font-medium">{{ solunarData.minor2 }}</span>
+              </div>
+            </div>
+            <div v-else class="text-gray-500">Loading solunar data...</div>
+          </div>
+        </div>
+
+        <!-- Extended Forecast -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            📅 5-Day Forecast
+          </h3>
+          <div v-if="forecast && forecast.length > 0" class="overflow-x-auto">
+            <div class="flex space-x-4 min-w-max">
+              <div
+                v-for="day in forecast"
+                :key="day.date"
+                class="flex-shrink-0 w-32 p-4 bg-gray-50 rounded-lg"
+              >
+                <div class="text-center">
+                  <div class="font-medium text-gray-900">{{ day.day }}</div>
+                  <div class="text-2xl my-2">{{ day.icon }}</div>
+                  <div class="text-sm text-gray-600">{{ day.conditions }}</div>
+                  <div class="font-medium mt-2">{{ day.high }}° / {{ day.low }}°</div>
+                  <div class="text-sm text-gray-600 mt-1">{{ day.wind }} mph</div>
+                  <div class="mt-2">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        class="bg-green-500 h-2 rounded-full"
+                        :style="{ width: day.fishingScore + '%' }"
+                      ></div>
                     </div>
-                    <div class="text-xs text-gray-500">{{ opportunity.confidence }}% confidence</div>
+                    <div class="text-xs text-gray-500 mt-1">{{ day.fishingScore }}% score</div>
                   </div>
                 </div>
               </div>
-            </UCard>
-
-            <!-- Weather Overview -->
-            <UCard>
-              <template #header>
-                <h3 class="text-xl font-bold text-blue-900">
-                  🌊 Regional Conditions
-                </h3>
-              </template>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div class="text-center p-4 bg-blue-50 rounded-lg">
-                  <div class="text-2xl mb-2">🌡️</div>
-                  <div class="font-semibold">Water Temp</div>
-                  <div class="text-lg">{{ regionalConditions.waterTemp }}°F</div>
-                  <div class="text-xs text-gray-600">{{ regionalConditions.tempTrend }}</div>
-                </div>
-                
-                <div class="text-center p-4 bg-green-50 rounded-lg">
-                  <div class="text-2xl mb-2">🌊</div>
-                  <div class="font-semibold">Tidal Range</div>
-                  <div class="text-lg">{{ regionalConditions.tidalRange }} ft</div>
-                  <div class="text-xs text-gray-600">{{ regionalConditions.tidalPhase }}</div>
-                </div>
-                
-                <div class="text-center p-4 bg-yellow-50 rounded-lg">
-                  <div class="text-2xl mb-2">🌙</div>
-                  <div class="font-semibold">Solunar</div>
-                  <div class="text-lg">{{ regionalConditions.solunarRating }}</div>
-                  <div class="text-xs text-gray-600">{{ regionalConditions.moonPhase }}</div>
-                </div>
-                
-                <div class="text-center p-4 bg-purple-50 rounded-lg">
-                  <div class="text-2xl mb-2">💨</div>
-                  <div class="font-semibold">Wind</div>
-                  <div class="text-lg">{{ regionalConditions.windSpeed }} mph</div>
-                  <div class="text-xs text-gray-600">{{ regionalConditions.windDirection }}</div>
-                </div>
-              </div>
-            </UCard>
+            </div>
           </div>
+          <div v-else class="text-gray-500">Loading forecast...</div>
+        </div>
 
-          <!-- Migration Tracker -->
-          <div class="mt-8">
-            <UCard>
-              <template #header>
-                <h3 class="text-xl font-bold text-blue-900">
-                  🐟 Striped Bass Migration Tracker
-                </h3>
-              </template>
-              
-              <div class="space-y-4">
-                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
-                  <div>
-                    <h4 class="font-semibold">Current Migration Status</h4>
-                    <p class="text-sm text-gray-600">{{ migrationStatus.phase }}</p>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-lg font-bold text-blue-600">{{ migrationStatus.activity }}</div>
-                    <div class="text-xs text-gray-500">{{ migrationStatus.trend }}</div>
-                  </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div class="text-center p-3 bg-gray-50 rounded">
-                    <div class="font-semibold text-sm">Northern Waters</div>
-                    <div class="text-lg">{{ migrationStatus.north }}°F</div>
-                    <div class="text-xs text-gray-600">{{ migrationStatus.northTrend }}</div>
-                  </div>
-                  <div class="text-center p-3 bg-gray-50 rounded">
-                    <div class="font-semibold text-sm">Mid-Atlantic</div>
-                    <div class="text-lg">{{ migrationStatus.mid }}°F</div>
-                    <div class="text-xs text-gray-600">{{ migrationStatus.midTrend }}</div>
-                  </div>
-                  <div class="text-center p-3 bg-gray-50 rounded">
-                    <div class="font-semibold text-sm">Chesapeake Bay</div>
-                    <div class="text-lg">{{ migrationStatus.south }}°F</div>
-                    <div class="text-xs text-gray-600">{{ migrationStatus.southTrend }}</div>
-                  </div>
-                </div>
+        <!-- Fish Activity Chart -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            🐟 24-Hour Fish Activity Prediction
+          </h3>
+          <div class="h-64 flex items-end space-x-1">
+            <div
+              v-for="(hour, index) in activityData"
+              :key="index"
+              class="flex-1 bg-blue-200 rounded-t relative"
+              :style="{ height: hour.activity + '%' }"
+            >
+              <div class="absolute -bottom-6 left-0 right-0 text-xs text-gray-500 text-center">
+                {{ hour.hour }}
               </div>
-            </UCard>
+              <div class="absolute -top-8 left-0 right-0 text-xs font-medium text-center">
+                {{ hour.activity }}%
+              </div>
+            </div>
+          </div>
+          <div class="mt-8 text-center text-sm text-gray-600">
+            Based on weather, tides, solunar data, and historical patterns
           </div>
         </div>
 
-        <!-- Alerts & Insights Tab -->
-        <div v-if="activeTab === 'alerts'" class="tab-panel">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Weather Alerts -->
-            <UCard>
-              <template #header>
-                <h3 class="text-xl font-bold text-red-600">
-                  ⚠️ Weather Alerts
-                </h3>
-              </template>
-              
-              <div class="space-y-3">
-                <div
-                  v-for="alert in weatherAlerts"
-                  :key="alert.id"
-                  class="p-4 border-l-4 rounded"
-                  :class="getAlertClass(alert.severity)"
-                >
-                  <h4 class="font-semibold">{{ alert.title }}</h4>
-                  <p class="text-sm">{{ alert.description }}</p>
-                  <p class="text-xs text-gray-500 mt-1">{{ alert.location }} • {{ alert.time }}</p>
-                </div>
-                
-                <div v-if="weatherAlerts.length === 0" class="text-center py-8 text-gray-500">
-                  <div class="text-4xl mb-2">✅</div>
-                  <p>No active weather alerts</p>
-                </div>
-              </div>
-            </UCard>
-
-            <!-- Fishing Insights -->
-            <UCard>
-              <template #header>
-                <h3 class="text-xl font-bold text-green-600">
-                  💡 AI Insights
-                </h3>
-              </template>
-              
-              <div class="space-y-4">
-                <div
-                  v-for="insight in aiInsights"
-                  :key="insight.id"
-                  class="p-4 bg-green-50 rounded-lg"
-                >
-                  <div class="flex items-start">
-                    <div class="text-2xl mr-3">{{ insight.icon }}</div>
-                    <div>
-                      <h4 class="font-semibold text-green-800">{{ insight.title }}</h4>
-                      <p class="text-sm text-green-700">{{ insight.description }}</p>
-                      <p class="text-xs text-green-600 mt-1">{{ insight.timing }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </UCard>
+        <!-- Tips & Recommendations -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            💡 Fishing Tips for {{ selectedLocation.name }}
+          </h3>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-medium text-gray-900 mb-2">Best Times Today</h4>
+              <ul class="space-y-1 text-sm text-gray-600">
+                <li v-for="tip in bestTimes" :key="tip">• {{ tip }}</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-medium text-gray-900 mb-2">Recommended Techniques</h4>
+              <ul class="space-y-1 text-sm text-gray-600">
+                <li v-for="technique in techniques" :key="technique">• {{ technique }}</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
 
     <!-- Footer -->
-    <footer class="bg-blue-900 text-white py-8">
-      <div class="container mx-auto px-4 text-center">
-        <p class="mb-4">
-          <strong>Fishing Report Pro v2.0</strong> - Powered by NOAA, Open-Meteo, and advanced solunar calculations
-        </p>
-        <div class="flex justify-center space-x-6 text-sm">
-          <span>🌊 Real-time NOAA data</span>
-          <span>🌙 Solunar calculations</span>
-          <span>🎯 AI-powered predictions</span>
-          <span>📱 PWA enabled</span>
+    <footer class="bg-white border-t border-gray-200 mt-16">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="text-center text-gray-600">
+          <p>Fishing Report Pro v2.0 • Real-time fishing intelligence</p>
+          <p class="mt-2 text-sm">Data from NOAA, Open-Meteo, and Solunar APIs</p>
         </div>
-        <p class="text-xs text-blue-300 mt-4">
-          Data sources: NOAA Weather Service, NOAA Tides & Currents, Open-Meteo Marine API
-        </p>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useStripedBassData } from '~/composables/useStripedBassData'
-import FishingMatrix from '~/components/FishingMatrix.vue'
-import StripedBassMap from '~/components/StripedBassMap.vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useFishingLocations } from '~/composables/useFishingLocations'
 
-const { locations } = useStripedBassData()
+// Location management
+const {
+  regions,
+  allLocations,
+  selectedRegion,
+  selectedLocation,
+  setLocation,
+  getLocationById,
+  searchLocations
+} = useFishingLocations()
 
-// SEO
-useHead({
-  title: 'Fishing Report Pro v2.0 - Northeast Striped Bass Intelligence',
-  meta: [
-    {
-      name: 'description',
-      content: 'Advanced AI-powered Striped Bass fishing predictions for the Northeast US. Real-time NOAA data, tidal analysis, and solunar calculations for Cape Cod to Chesapeake Bay.'
-    },
-    {
-      name: 'keywords',
-      content: 'striped bass fishing, northeast fishing, NOAA data, tidal fishing, solunar charts, fishing forecast, Cape Cod, Montauk, Chesapeake Bay'
-    }
-  ]
+// Search functionality
+const searchQuery = ref('')
+const searchResults = computed(() => {
+  return searchQuery.value ? searchLocations(searchQuery.value) : []
 })
 
-// Reactive data
-const activeTab = ref('matrix')
-const currentBestScore = ref(87)
-const activeAlerts = ref(2)
-
-const tabs = [
-  { id: 'matrix', label: 'Success Matrix', icon: '📊' },
-  { id: 'map', label: 'Interactive Map', icon: '🗺️' },
-  { id: 'conditions', label: 'Current Conditions', icon: '🌊' },
-  { id: 'alerts', label: 'Alerts & Insights', icon: '⚠️' }
-]
-
-// Mock data for demo
-const todaysBest = ref([
-  {
-    id: 1,
-    name: 'Montauk Point',
-    state: 'NY',
-    score: 87,
-    confidence: 92,
-    timeWindow: '6:00 AM - 8:00 AM',
-    reason: 'Optimal tidal movement + major solunar period'
-  },
-  {
-    id: 2,
-    name: 'Cape Cod Canal',
-    state: 'MA',
-    score: 82,
-    confidence: 88,
-    timeWindow: '7:30 PM - 9:30 PM',
-    reason: 'Perfect water temperature + rising tide'
-  },
-  {
-    id: 3,
-    name: 'Sandy Hook',
-    state: 'NJ',
-    score: 79,
-    confidence: 85,
-    timeWindow: '5:45 AM - 7:45 AM',
-    reason: 'Strong tidal current + stable pressure'
-  }
-])
-
-const regionalConditions = ref({
-  waterTemp: 63,
-  tempTrend: 'Rising 2°F',
-  tidalRange: 6.8,
-  tidalPhase: 'Incoming',
-  solunarRating: 'Good',
-  moonPhase: 'Waxing Gibbous',
-  windSpeed: 12,
-  windDirection: 'SW'
+// Regional locations
+const regionLocations = computed(() => {
+  if (!selectedRegion.value) return []
+  const region = regions.value.find(r => r.id === selectedRegion.value)
+  return region ? region.locations : []
 })
 
-const migrationStatus = ref({
-  phase: 'Fall Migration Active',
-  activity: 'High Activity',
-  trend: 'Moving South',
-  north: 58,
-  northTrend: 'Falling',
-  mid: 63,
-  midTrend: 'Stable',
-  south: 68,
-  southTrend: 'Rising'
-})
-
-const weatherAlerts = ref([
-  {
-    id: 1,
-    title: 'Small Craft Advisory',
-    description: 'Winds 15-25 knots with gusts to 30 knots. Seas 3-5 feet.',
-    location: 'Montauk Point, NY',
-    time: '6 hours ago',
-    severity: 'warning'
-  },
-  {
-    id: 2,
-    title: 'Dense Fog Advisory',
-    description: 'Visibility reduced to less than 1 nautical mile.',
-    location: 'Cape Cod Bay, MA',
-    time: '2 hours ago',
-    severity: 'caution'
-  }
-])
-
-const aiInsights = ref([
-  {
-    id: 1,
-    icon: '🎯',
-    title: 'Perfect Storm Conditions',
-    description: 'Montauk Point will have ideal conditions tomorrow at dawn. All factors align for excellent Striped Bass activity.',
-    timing: 'Tomorrow 6:00 AM - 8:00 AM'
-  },
-  {
-    id: 2,
-    icon: '🌡️',
-    title: 'Temperature Sweet Spot',
-    description: 'Water temperatures in the 60-65°F range are triggering increased feeding activity across all locations.',
-    timing: 'Next 3 days'
-  },
-  {
-    id: 3,
-    icon: '🌙',
-    title: 'Major Solunar Period',
-    description: 'Tonight\'s major solunar period coincides with optimal tidal movement at Cape Cod Canal.',
-    timing: 'Today 7:30 PM - 9:30 PM'
-  }
-])
-
-// Methods
-const getScoreColor = (score) => {
-  if (score >= 80) return 'text-green-600'
-  if (score >= 60) return 'text-blue-600'
-  if (score >= 40) return 'text-yellow-600'
-  return 'text-red-600'
+// Current time
+const currentTime = ref('')
+const updateTime = () => {
+  currentTime.value = new Date().toLocaleString()
 }
 
-const getAlertClass = (severity) => {
-  switch (severity) {
-    case 'warning':
-      return 'border-red-400 bg-red-50'
-    case 'caution':
-      return 'border-yellow-400 bg-yellow-50'
-    default:
-      return 'border-gray-400 bg-gray-50'
-  }
-}
-
-// Lifecycle
 onMounted(() => {
-  // Simulate live data updates
-  setInterval(() => {
-    currentBestScore.value = Math.floor(Math.random() * 20) + 75
-  }, 30000) // Update every 30 seconds
+  updateTime()
+  setInterval(updateTime, 60000) // Update every minute
+})
+
+// Data states
+const weatherData = ref(null)
+const tideData = ref(null)
+const solunarData = ref(null)
+const forecast = ref([])
+const activityData = ref([])
+
+// Computed values
+const fishingScore = computed(() => {
+  if (!selectedLocation.value) return 0
+  // Simple scoring algorithm based on available data
+  let score = 50
+  if (weatherData.value) {
+    // Weather scoring
+    if (weatherData.value.windSpeed < 15) score += 10
+    if (weatherData.value.pressure > 30.0) score += 10
+    if (weatherData.value.temperature > 50 && weatherData.value.temperature < 80) score += 10
+  }
+  if (tideData.value) {
+    // Tide scoring - moving water is generally better
+    if (tideData.value.currentTide.includes('Rising') || tideData.value.currentTide.includes('Falling')) {
+      score += 15
+    }
+  }
+  return Math.min(95, Math.max(15, score))
+})
+
+const bestTimes = computed(() => {
+  const times = []
+  if (solunarData.value) {
+    times.push(`Major feeding: ${solunarData.value.major1}`)
+    times.push(`Minor feeding: ${solunarData.value.minor1}`)
+    times.push(`Major feeding: ${solunarData.value.major2}`)
+  }
+  if (tideData.value) {
+    times.push(`High tide: ${tideData.value.nextHigh}`)
+    times.push(`Low tide: ${tideData.value.nextLow}`)
+  }
+  return times.slice(0, 4)
+})
+
+const techniques = computed(() => {
+  const techs = []
+  if (!selectedLocation.value) return techs
+  
+  // Location-based recommendations
+  if (selectedLocation.value.type === 'Harbor') {
+    techs.push('Live bait fishing near structure')
+    techs.push('Light tackle with small lures')
+  } else if (selectedLocation.value.type === 'Beach') {
+    techs.push('Surf fishing with heavy tackle')
+    techs.push('Bait fishing in the wash')
+  } else if (selectedLocation.value.type === 'Bay') {
+    techs.push('Drift fishing over structure')
+    techs.push('Trolling with spoons or plugs')
+  } else {
+    techs.push('Live bait fishing')
+    techs.push('Artificial lure fishing')
+  }
+  
+  // Weather-based recommendations
+  if (weatherData.value) {
+    if (weatherData.value.windSpeed > 20) {
+      techs.push('Fish protected areas')
+    } else if (weatherData.value.windSpeed < 10) {
+      techs.push('Try topwater lures')
+    }
+  }
+  
+  return techs.slice(0, 4)
+})
+
+// Location selection
+const selectLocation = (locationId) => {
+  setLocation(locationId)
+  loadLocationData()
+}
+
+const clearLocation = () => {
+  selectedLocation.value = null
+  selectedRegion.value = null
+  weatherData.value = null
+  tideData.value = null
+  solunarData.value = null
+  forecast.value = []
+  activityData.value = []
+}
+
+// Data loading
+const loadLocationData = async () => {
+  if (!selectedLocation.value) return
+  
+  const { lat, lng } = selectedLocation.value
+  
+  try {
+    // Load weather data
+    loadWeatherData(lat, lng)
+    
+    // Load tide data
+    loadTideData(lat, lng)
+    
+    // Load solunar data
+    loadSolunarData(lat, lng)
+    
+    // Load forecast
+    loadForecast(lat, lng)
+    
+    // Generate activity data
+    generateActivityData()
+  } catch (error) {
+    console.error('Error loading location data:', error)
+  }
+}
+
+const loadWeatherData = async (lat, lng) => {
+  try {
+    // Simulate API call
+    setTimeout(() => {
+      weatherData.value = {
+        temperature: Math.round(45 + Math.random() * 40),
+        windSpeed: Math.round(Math.random() * 25),
+        windDirection: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(Math.random() * 8)],
+        pressure: (29.5 + Math.random() * 2).toFixed(2),
+        conditions: ['Sunny', 'Partly Cloudy', 'Overcast', 'Light Rain'][Math.floor(Math.random() * 4)]
+      }
+    }, 500)
+  } catch (error) {
+    console.error('Error loading weather:', error)
+  }
+}
+
+const loadTideData = async (lat, lng) => {
+  try {
+    // Simulate API call
+    setTimeout(() => {
+      const now = new Date()
+      const nextHigh = new Date(now.getTime() + (2 + Math.random() * 4) * 60 * 60 * 1000)
+      const nextLow = new Date(now.getTime() + (6 + Math.random() * 4) * 60 * 60 * 1000)
+      
+      tideData.value = {
+        currentTide: ['Rising', 'Falling', 'High Slack', 'Low Slack'][Math.floor(Math.random() * 4)],
+        nextHigh: nextHigh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        nextLow: nextLow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        height: (Math.random() * 8).toFixed(1)
+      }
+    }, 700)
+  } catch (error) {
+    console.error('Error loading tides:', error)
+  }
+}
+
+const loadSolunarData = async (lat, lng) => {
+  try {
+    // Simulate API call
+    setTimeout(() => {
+      const now = new Date()
+      solunarData.value = {
+        major1: new Date(now.getTime() + Math.random() * 4 * 60 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        minor1: new Date(now.getTime() + Math.random() * 6 * 60 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        major2: new Date(now.getTime() + (8 + Math.random() * 4) * 60 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        minor2: new Date(now.getTime() + (12 + Math.random() * 4) * 60 * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    }, 600)
+  } catch (error) {
+    console.error('Error loading solunar:', error)
+  }
+}
+
+const loadForecast = async (lat, lng) => {
+  try {
+    // Simulate API call
+    setTimeout(() => {
+      const days = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri']
+      const icons = ['☀️', '⛅', '☁️', '🌧️', '⛈️']
+      const conditions = ['Sunny', 'Partly Cloudy', 'Overcast', 'Rain', 'Storms']
+      
+      forecast.value = days.map((day, index) => ({
+        date: new Date(Date.now() + index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        day,
+        icon: icons[Math.floor(Math.random() * icons.length)],
+        conditions: conditions[Math.floor(Math.random() * conditions.length)],
+        high: Math.round(50 + Math.random() * 30),
+        low: Math.round(30 + Math.random() * 20),
+        wind: Math.round(Math.random() * 20),
+        fishingScore: Math.round(30 + Math.random() * 50)
+      }))
+    }, 800)
+  } catch (error) {
+    console.error('Error loading forecast:', error)
+  }
+}
+
+const generateActivityData = () => {
+  // Generate 24 hours of activity data
+  activityData.value = Array.from({ length: 24 }, (_, i) => ({
+    hour: i === 0 ? '12a' : i === 12 ? '12p' : i > 12 ? `${i - 12}p` : `${i}a`,
+    activity: Math.round(20 + Math.random() * 60 + Math.sin(i / 24 * Math.PI * 4) * 20)
+  }))
+}
+
+// Watch for location changes
+watch(selectedLocation, (newLocation) => {
+  if (newLocation) {
+    loadLocationData()
+  }
 })
 </script>
 
