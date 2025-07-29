@@ -1,5 +1,5 @@
 {
-  "name": "fishing-report-pwa",
+  "name": "fishing-report-pwa-v2",
   "private": true,
   "scripts": {
     "build": "nuxt build",
@@ -25,6 +25,13 @@
     "@heroicons/vue": "^2.0.18",
     "axios": "^1.6.2",
     "date-fns": "^2.30.0",
-    "openai": "^4.20.1"
+    "openai": "^4.20.1",
+    "leaflet": "^1.9.4",
+    "@vue-leaflet/vue-leaflet": "^0.10.1",
+    "d3": "^7.8.5",
+    "lodash": "^4.17.21",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "suncalc": "^1.9.0",
+    "moment-timezone": "^0.5.43"
   }
 }
